@@ -2,7 +2,6 @@ import numpy as np
 import pickle
 from tqdm import tqdm
 import time
-import math
 from sklearn.feature_extraction.text import CountVectorizer, TfidfTransformer
 
 # Variable `data` contains all the data item with format of (label, text embedding, |embedding|^2). The embedding is
@@ -12,6 +11,7 @@ from sklearn.feature_extraction.text import CountVectorizer, TfidfTransformer
 # Variable `acc` records the accuracy of each test.
 # Variable `res_f` is the file which the result will be written to.
 # `K` is the hyperparameter.
+start_time = time.time()
 data = []
 labels = []
 data_arr = []
@@ -106,7 +106,7 @@ def run_test(idx):
 
     for res in res_data:
         idxs = np.argpartition(res, -K)[-K:]
-        K_labels = map(lambda id_:train_labels[id_], idxs)
+        K_labels = map(lambda id_: train_labels[id_], idxs)
         label_dict = {}
         Max = 0
         pred = None
@@ -122,10 +122,12 @@ def run_test(idx):
     # for each item in test set, find the k-nearest-neighbor.
     acc.append(acc_num / all_num)
     print("accuracy in test%d : %f" % (i, acc_num / all_num))
+    print("elapsed time: %s s" % (time.time() - start_time))
     if save_result:
         with open("../res/res-" + time.strftime("%Y-%m-%d-%H:%M:%S",
                                                 time.localtime()) + ".txt", "w") as res_f:
             print("accuracy in test%d : %f" % (i, acc_num / all_num), file=res_f)
+            print("elapsed time: %s s" % (time.time() - start_time), file=res_f)
 
 
 if __name__ == "__main__":
@@ -134,7 +136,9 @@ if __name__ == "__main__":
     for i in range(10):
         run_test(i)
     print("average accuracy: %f" % (np.mean(acc)))
+    print("total time: %s s" % (time.time() - start_time))
     if save_result:
         with open("../res/res-" + time.strftime("%Y-%m-%d-%H:%M:%S",
                                                 time.localtime()) + ".txt", "w") as res_f:
             print("average accuracy: %f" % (np.mean(acc)), file=res_f)
+            print("total time: %s s" % (time.time() - start_time), file=res_f)
