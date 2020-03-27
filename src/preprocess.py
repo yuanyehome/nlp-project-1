@@ -11,8 +11,9 @@ for label in labels:
         file_name = os.path.join(label_path, item)
         with open(file_name) as f:
             contents = f.read().split()
-            data_item = (label, contents)
-            all_data.append(data_item)
+            if len(contents) != 0:
+                data_item = (label, contents)
+                all_data.append(data_item)
 
 with open("../data/all_data.pkl", "wb") as f:
     pickle.dump(all_data, f)
