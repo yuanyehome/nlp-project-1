@@ -109,6 +109,22 @@ def run_test(idx):
     test_labels = np.array(test_labels)
     train_labels = np.array(train_labels)
     res_data = np.matmul(test_data, train_data.T)
+    pred_labels = []
+
+    for res in res_data:
+        idxs = np.argpartition(res, -K)[-K:]
+        K_labels = map(lambda id_:train_labels[id_], idxs)
+        label_dict = {}
+        Max = 0
+        pred = None
+        for label in K_labels:
+            label_dict.setdefault(label, 0)
+            label_dict[label] += 1
+            if label_dict[label] > Max:
+                Max = label_dict[label]
+                pred = label
+        pred_labels.append(pred)
+    acc_num = np.sum(pred_labels == test_labels)
 
     # for each item in test set, find the k-nearest-neighbor.
     acc.append(acc_num / all_num)
