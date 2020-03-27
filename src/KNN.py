@@ -18,6 +18,7 @@ acc = []
 res_f = open("../res/res-" + time.strftime("%Y-%m-%d-%H:%M:%S",
                                            time.localtime()) + ".txt", "w")
 K = 20
+save_result = False
 with open("../data/all_data.pkl", "rb") as f:
     all_data = pickle.load(f)
 
@@ -125,7 +126,8 @@ def run_test(idx):
             acc_num += 1
     acc.append(acc_num / all_num)
     print("accuracy in test%d : %f" % (i, acc_num / all_num))
-    print("accuracy in test%d : %f" % (i, acc_num / all_num), file=res_f)
+    if save_result:
+        print("accuracy in test%d : %f" % (i, acc_num / all_num), file=res_f)
 
 
 if __name__ == "__main__":
@@ -134,4 +136,5 @@ if __name__ == "__main__":
     for i in range(10):
         run_test(i)
     print("average accuracy: %f" % (np.mean(acc)))
-    print("average accuracy: %f" % (np.mean(acc)), file=res_f)
+    if save_result:
+        print("average accuracy: %f" % (np.mean(acc)), file=res_f)
