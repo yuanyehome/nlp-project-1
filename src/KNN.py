@@ -71,7 +71,7 @@ def build_data():
         data_item = [item[0], np.zeros(len(word2idx)), 0]
         for word in item[1]:
             data_item[1][word2idx[word]] += 1
-            data_item[2] += 1
+        data_item[2] = np.inner(data_item[1], data_item[1])
         data.append(data_item)
 
     # divide the data into 10 parts
