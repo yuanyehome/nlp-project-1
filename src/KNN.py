@@ -22,32 +22,6 @@ with open("../data/all_data.pkl", "rb") as f:
     all_data = pickle.load(f)
 
 
-def tf_idf():
-    """
-    Leave only the key words in each text;
-    Do it before build_data();
-    """
-    tf_idf_data = []
-    word2idx = {}
-    idx2word = {}
-    idx = 0
-    for item in all_data:
-        for word in item[1]:
-            if word not in word2idx.keys():
-                word2idx[word] = idx
-                idx2word[idx] = word
-                idx += 1
-    length = len(all_data)
-    weights = np.zeros([idx, length])
-    for (idx, item) in enumerate(all_data):
-        for word in item[1]:
-            weights[word2idx[word]][idx] += 1
-    for ii in range(length):
-        weights[:, ii] = weights[:, ii] / np.sum(weights[:, ii])
-    for ii in range(idx):
-        weights[ii] *= math.log(length / np.sum(weights[ii] > 0))
-
-
 def calc_cos(arr1, arr2):
     """
     Calculate the cos similarity
@@ -137,7 +111,6 @@ def run_test(idx):
 
 
 if __name__ == "__main__":
-    # tf_idf()
     build_data()
     for i in range(10):
         run_test(i)
