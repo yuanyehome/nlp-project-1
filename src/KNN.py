@@ -109,6 +109,7 @@ def run_test(idx):
     test_labels = np.array(test_labels)
     train_labels = np.array(train_labels)
     res_data = np.matmul(test_data, train_data.T)
+    print(res_data.shape)
     pred_labels = []
 
     for res in res_data:
@@ -138,7 +139,7 @@ def run_test(idx):
 if __name__ == "__main__":
     build_data()
     divide_data()
-    for i in tqdm(range(10), desc="testing: "):
+    for i in range(10):
         run_test(i)
     print("average accuracy: %f" % (np.mean(acc)))
     if save_result:
