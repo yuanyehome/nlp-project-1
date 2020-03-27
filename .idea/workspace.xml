@@ -2,7 +2,6 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="71e47722-9587-4cb0-8b02-e7288fbfc363" name="Default Changelist" comment="">
-      <change afterPath="$PROJECT_DIR$/src/tf-idf.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/KNN.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/KNN.py" afterDir="false" />
     </list>
@@ -135,7 +134,7 @@
       <workItem from="1584848227623" duration="161000" />
       <workItem from="1585227783301" duration="2071000" />
       <workItem from="1585230634796" duration="9025000" />
-      <workItem from="1585294738566" duration="2320000" />
+      <workItem from="1585294738566" duration="3420000" />
     </task>
     <servers />
   </component>

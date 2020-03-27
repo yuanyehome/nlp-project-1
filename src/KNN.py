@@ -4,12 +4,6 @@ from tqdm import tqdm
 import time
 import math
 
-data = []
-data_arr = []
-acc = []
-res_f = open("../res/res-" + time.strftime("%Y-%m-%d-%H:%M:%S",
-                                           time.localtime()) + ".txt", "w")
-K = 20
 # Variable `data` contains all the data item with format of (label, text embedding, |embedding|^2). The embedding is
 # a vector of |V| dimension, where |V| is the size of vocabulary. The i-th element of this vector is 1 of this text
 # contains word_i, else 0.
@@ -17,6 +11,22 @@ K = 20
 # Variable `acc` records the accuracy of each test.
 # Variable `res_f` is the file which the result will be written to.
 # `K` is the hyperparameter.
+data = []
+data_arr = []
+acc = []
+res_f = open("../res/res-" + time.strftime("%Y-%m-%d-%H:%M:%S",
+                                           time.localtime()) + ".txt", "w")
+K = 20
+with open("../data/all_data.pkl", "rb") as f:
+    all_data = pickle.load(f)
+
+
+def tf_idf():
+    """
+    Leave only the key words in each text;
+    Do it before build_data();
+    """
+    pass
 
 
 def calc_cos(arr1, arr2):
@@ -35,8 +45,6 @@ def build_data():
     idx = 0
     global data
     global data_arr
-    with open("../data/all_data.pkl", "rb") as f:
-        all_data = pickle.load(f)
 
     # build a index, which map a word into a index of embedding vector.
     for item in all_data:
@@ -105,6 +113,7 @@ def run_test(idx):
 
 
 if __name__ == "__main__":
+    # tf_idf()
     build_data()
     for i in range(10):
         run_test(i)
