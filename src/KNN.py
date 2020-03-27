@@ -13,10 +13,10 @@ from sklearn.feature_extraction.text import CountVectorizer, TfidfTransformer
 # Variable `res_f` is the file which the result will be written to.
 # `K` is the hyperparameter.
 data = []
+labels = []
 data_arr = []
+label_arr = []
 acc = []
-res_f = open("../res/res-" + time.strftime("%Y-%m-%d-%H:%M:%S",
-                                           time.localtime()) + ".txt", "w")
 K = 20
 save_result = False
 with open("../data/all_data.pkl", "rb") as f:
@@ -46,7 +46,8 @@ def build_data_from_sklearn():
     tfidf = transformer.fit_transform(vectorizer.fit_transform(corpus)).toarray()
     length = len(all_data)
     for idx in range(length):
-        data.append([all_data[idx][0], tfidf[idx], np.linalg.norm(tfidf[idx])])
+        data.append(tfidf[idx] / np.linalg.norm(tfidf[idx]))
+        labels.append(all_data[idx][0])
 
 
 def build_data():
@@ -66,13 +67,12 @@ def build_data():
                 idx += 1
 
     # build vectors.
-    for item in all_data:
-        data_item = [item[0], [], 0]
+    for item in tqdm(all_data, desc="processing vector:"):
+        arr = np.zeros(idx)
         for word in item[1]:
-            if word2idx[word] not in data_item[1]:
-                data_item[1].append(word2idx[word])
-                data_item[2] += 1
-        data.append(data_item)
+            arr[word2idx[word]] = 1
+        data.append(arr / np.linalg.norm(arr))
+        labels.append(item[0])
 
 
 def divide_data():
@@ -83,7 +83,9 @@ def divide_data():
     length = len(data) // 10
     for idx in range(9):
         data_arr.append(data[idx * length:(idx + 1) * length])
+        label_arr.append(labels[idx * length:(idx + 1) * length])
     data_arr.append(data[9 * length:])
+    label_arr.append(labels[9 * length:])
 
 
 def run_test(idx):
@@ -93,41 +95,28 @@ def run_test(idx):
 
     # get test data and train data
     test_data = data_arr[i]
+    test_labels = label_arr[i]
     train_data = []
+    train_labels = []
     all_num = len(test_data)
     acc_num = 0
     for j in range(10):
         if j != idx:
             train_data += data_arr[j]
+            train_labels += label_arr[j]
+    test_data = np.array(test_data)
+    train_data = np.array(train_data)
+    test_labels = np.array(test_labels)
+    train_labels = np.array(train_labels)
+    res_data = np.matmul(test_data, train_data.T)
 
     # for each item in test set, find the k-nearest-neighbor.
-    for item in tqdm(test_data):
-        labels = {}
-
-        # for each item in train set, calculate cos similarity of test item and train item
-        # record contains item formatted as (label, similarity).
-        record = list(map(lambda train_item: (train_item[0], calc_cos(item, train_item)),
-                          train_data))
-
-        # find the max-k labels
-        record.sort(key=lambda s: s[1], reverse=True)
-        for m in range(K):
-            labels.setdefault(record[m][0], 0)
-            labels[record[m][0]] += 1
-
-        # find the most frequent label
-        res = ''
-        Max = 0
-        for neighbor in labels.keys():
-            if labels[neighbor] > Max:
-                res = neighbor
-                Max = labels[neighbor]
-        if res == item[0]:
-            acc_num += 1
     acc.append(acc_num / all_num)
     print("accuracy in test%d : %f" % (i, acc_num / all_num))
     if save_result:
-        print("accuracy in test%d : %f" % (i, acc_num / all_num), file=res_f)
+        with open("../res/res-" + time.strftime("%Y-%m-%d-%H:%M:%S",
+                                                time.localtime()) + ".txt", "w") as res_f:
+            print("accuracy in test%d : %f" % (i, acc_num / all_num), file=res_f)
 
 
 if __name__ == "__main__":
@@ -137,4 +126,6 @@ if __name__ == "__main__":
         run_test(i)
     print("average accuracy: %f" % (np.mean(acc)))
     if save_result:
-        print("average accuracy: %f" % (np.mean(acc)), file=res_f)
+        with open("../res/res-" + time.strftime("%Y-%m-%d-%H:%M:%S",
+                                                time.localtime()) + ".txt", "w") as res_f:
+            print("average accuracy: %f" % (np.mean(acc)), file=res_f)
