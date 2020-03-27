@@ -47,13 +47,6 @@ def build_data_from_sklearn():
     for idx in range(length):
         data.append([all_data[idx][0], tfidf[idx], np.linalg.norm(tfidf[idx])])
 
-    # divide the data into 10 parts
-    np.random.shuffle(data)
-    length = len(data) // 10
-    for idx in range(9):
-        data_arr.append(data[idx * length:(idx + 1) * length])
-    data_arr.append(data[9 * length:])
-
 
 def build_data():
     """
@@ -80,7 +73,11 @@ def build_data():
                 data_item[2] += 1
         data.append(data_item)
 
-    # divide the data into 10 parts
+
+def divide_data():
+    """
+    divide the data into 10 parts
+    """
     np.random.shuffle(data)
     length = len(data) // 10
     for idx in range(9):
@@ -133,6 +130,7 @@ def run_test(idx):
 
 if __name__ == "__main__":
     build_data()
+    divide_data()
     for i in range(10):
         run_test(i)
     print("average accuracy: %f" % (np.mean(acc)))
