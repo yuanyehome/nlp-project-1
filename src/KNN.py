@@ -79,7 +79,12 @@ def divide_data():
     """
     divide the data into 10 parts
     """
-    np.random.shuffle(data)
+    global data, labels
+    zip_data = list(zip(data, labels))
+    np.random.shuffle(zip_data)
+    data, labels = list(zip(*zip_data))
+    data = list(data)
+    labels = list(labels)
     length = len(data) // 10
     for idx in range(9):
         data_arr.append(data[idx * length:(idx + 1) * length])
