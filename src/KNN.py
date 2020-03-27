@@ -27,12 +27,15 @@ def tf_idf():
     Leave only the key words in each text;
     Do it before build_data();
     """
+    tf_idf_data = []
     word2idx = {}
+    idx2word = {}
     idx = 0
     for item in all_data:
         for word in item[1]:
             if word not in word2idx.keys():
                 word2idx[word] = idx
+                idx2word[idx] = word
                 idx += 1
     length = len(all_data)
     weights = np.zeros([idx, length])
