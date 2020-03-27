@@ -27,7 +27,6 @@ def tf_idf():
     Leave only the key words in each text;
     Do it before build_data();
     """
-    tf_idf_data = copy.deepcopy(all_data)
     word2idx = {}
     idx = 0
     for item in all_data:
@@ -35,11 +34,15 @@ def tf_idf():
             if word not in word2idx.keys():
                 word2idx[word] = idx
                 idx += 1
-    weights = np.zeros([idx, len(all_data)])
+    length = len(all_data)
+    weights = np.zeros([idx, length])
     for (idx, item) in enumerate(all_data):
         for word in item[1]:
             weights[word2idx[word]][idx] += 1
-
+    for ii in range(length):
+        weights[:, ii] = weights[:, ii] / np.sum(weights[:, ii])
+    for ii in range(idx):
+        weights[ii] *= math.log(length / np.sum(weights[ii] > 0))
 
 
 def calc_cos(arr1, arr2):
@@ -70,7 +73,7 @@ def build_data():
     for item in all_data:
         data_item = [item[0], np.zeros(len(word2idx)), 0]
         for word in item[1]:
-            data_item[1][word2idx[word]] += 1
+            data_item[1][word2idx[word]] = 1
         data_item[2] = np.inner(data_item[1], data_item[1])
         data.append(data_item)
 
