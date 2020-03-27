@@ -1,0 +1,11 @@
+accuracy in test0 : 0.816446
+accuracy in test1 : 0.824523
+accuracy in test2 : 0.832599
+accuracy in test3 : 0.817181
+accuracy in test4 : 0.832599
+accuracy in test5 : 0.837004
+accuracy in test6 : 0.829662
+accuracy in test7 : 0.805433
+accuracy in test8 : 0.834068
+accuracy in test9 : 0.810219
+average accuracy: 0.823973
