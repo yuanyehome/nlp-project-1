@@ -61,7 +61,7 @@ def build_data():
     data_arr.append(data[9 * length:])
 
 
-def run_test(i):
+def run_test(idx):
     """
     Use data_arr[i] as test set and the left data as train set.
     """
@@ -72,7 +72,7 @@ def run_test(i):
     all_num = len(test_data)
     acc_num = 0
     for j in range(10):
-        if j != i:
+        if j != idx:
             train_data += data_arr[j]
 
     # for each item in test set, find the k-nearest-neighbor.
