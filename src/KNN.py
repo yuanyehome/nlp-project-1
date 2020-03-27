@@ -23,18 +23,6 @@ with open("../data/all_data.pkl", "rb") as f:
     all_data = pickle.load(f)
 
 
-def calc_cos(arr1, arr2):
-    """
-    Calculate the cos similarity
-    """
-    # assert (len(arr1) == len(arr2))
-    inner = 0
-    for id1 in arr1[1]:
-        if id1 in arr2[1]:
-            inner += 1
-    return inner / math.sqrt(arr1[2] * arr2[2])
-
-
 def build_data_from_sklearn():
     """
     Build the dataset and divide it into 10 parts.
@@ -114,7 +102,6 @@ def run_test(idx):
     test_labels = np.array(test_labels)
     train_labels = np.array(train_labels)
     res_data = np.matmul(test_data, train_data.T)
-    print(res_data.shape)
     pred_labels = []
 
     for res in res_data:
