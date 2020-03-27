@@ -53,7 +53,11 @@ def calc_cos(arr1, arr2):
     Calculate the cos similarity
     """
     # assert (len(arr1) == len(arr2))
-    return np.inner(arr1[1], arr2[1]) / math.sqrt(arr1[2] * arr2[2])
+    inner = 0
+    for id1 in arr1[1]:
+        if id1 in arr2[1]:
+            inner += 1
+    return inner / math.sqrt(arr1[2] * arr2[2])
 
 
 def build_data():
@@ -74,10 +78,11 @@ def build_data():
 
     # build vectors.
     for item in all_data:
-        data_item = [item[0], np.zeros(len(word2idx)), 0]
+        data_item = [item[0], [], 0]
         for word in item[1]:
-            data_item[1][word2idx[word]] = 1
-        data_item[2] = np.inner(data_item[1], data_item[1])
+            if word2idx[word] not in data_item[1]:
+                data_item[1].append(word2idx[word])
+                data_item[2] += 1
         data.append(data_item)
 
     # divide the data into 10 parts
