@@ -2,7 +2,6 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="71e47722-9587-4cb0-8b02-e7288fbfc363" name="Default Changelist" comment="">
-      <change afterPath="$PROJECT_DIR$/res/res_test.txt" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/KNN.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/KNN.py" afterDir="false" />
     </list>
@@ -55,6 +54,9 @@
       <module name="nlp" />
       <option name="INTERPRETER_OPTIONS" value="" />
       <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
       <option name="SDK_HOME" value="" />
       <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/src" />
       <option name="IS_MODULE_SDK" value="true" />
@@ -96,6 +98,9 @@
       <module name="nlp" />
       <option name="INTERPRETER_OPTIONS" value="" />
       <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
       <option name="SDK_HOME" value="" />
       <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/src" />
       <option name="IS_MODULE_SDK" value="true" />
@@ -132,6 +137,7 @@
       <workItem from="1584848227623" duration="161000" />
       <workItem from="1585227783301" duration="2071000" />
       <workItem from="1585230634796" duration="9025000" />
+      <workItem from="1585294738566" duration="140000" />
     </task>
     <servers />
   </component>

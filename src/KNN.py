@@ -10,7 +10,9 @@ acc = []
 res_f = open("../res/res-" + time.strftime("%Y-%m-%d-%H:%M:%S",
                                            time.localtime()) + ".txt", "w")
 K = 20
-# Variable `data` contains all the data item with format of (label, text embedding, |embedding|^2). The embedding is a vector of |V| dimension, where |V| is the size of vacabulary. The i-th element of this vector is 1 of this text contains word_i, else 0.
+# Variable `data` contains all the data item with format of (label, text embedding, |embedding|^2). The embedding is
+# a vector of |V| dimension, where |V| is the size of vocabulary. The i-th element of this vector is 1 of this text
+# contains word_i, else 0.
 # Divide the data into 10 parts, we can get `data_arr`
 # Variable `acc` records the accuracy of each test.
 # Variable `res_f` is the file which the result will be written to.
@@ -18,17 +20,17 @@ K = 20
 
 
 def calc_cos(arr1, arr2):
-    '''
+    """
     Calculate the cos similarity
-    '''
+    """
     # assert (len(arr1) == len(arr2))
     return np.inner(arr1[1], arr2[1]) / math.sqrt(arr1[2] * arr2[2])
 
 
 def build_data():
-    '''
+    """
     Build the dataset and divide it into 10 parts.
-    '''
+    """
     word2idx = {}
     idx = 0
     global data
@@ -60,9 +62,9 @@ def build_data():
 
 
 def run_test(i):
-    '''
+    """
     Use data_arr[i] as test set and the left data as train set.
-    '''
+    """
 
     # get test data and train data
     test_data = data_arr[i]
