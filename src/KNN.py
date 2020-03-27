@@ -122,7 +122,7 @@ def run_test(idx):
 if __name__ == "__main__":
     build_data()
     divide_data()
-    for i in range(10):
+    for i in tqdm(range(10), desc="testing: "):
         run_test(i)
     print("average accuracy: %f" % (np.mean(acc)))
     if save_result:
