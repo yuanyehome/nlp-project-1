@@ -56,8 +56,8 @@ def build_data():
     # divide the data into 10 parts
     np.random.shuffle(data)
     length = len(data) // 10
-    for i in range(9):
-        data_arr.append(data[i * length:(i + 1) * length])
+    for idx in range(9):
+        data_arr.append(data[idx * length:(idx + 1) * length])
     data_arr.append(data[9 * length:])
 
 
