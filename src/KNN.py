@@ -3,6 +3,7 @@ import pickle
 from tqdm import tqdm
 import time
 import math
+import copy
 
 # Variable `data` contains all the data item with format of (label, text embedding, |embedding|^2). The embedding is
 # a vector of |V| dimension, where |V| is the size of vocabulary. The i-th element of this vector is 1 of this text
@@ -26,7 +27,19 @@ def tf_idf():
     Leave only the key words in each text;
     Do it before build_data();
     """
-    pass
+    tf_idf_data = copy.deepcopy(all_data)
+    word2idx = {}
+    idx = 0
+    for item in all_data:
+        for word in item[1]:
+            if word not in word2idx.keys():
+                word2idx[word] = idx
+                idx += 1
+    weights = np.zeros([idx, len(all_data)])
+    for (idx, item) in enumerate(all_data):
+        for word in item[1]:
+            weights[word2idx[word]][idx] += 1
+
 
 
 def calc_cos(arr1, arr2):
@@ -57,7 +70,7 @@ def build_data():
     for item in all_data:
         data_item = [item[0], np.zeros(len(word2idx)), 0]
         for word in item[1]:
-            data_item[1][word2idx[word]] = 1
+            data_item[1][word2idx[word]] += 1
             data_item[2] += 1
         data.append(data_item)
 
