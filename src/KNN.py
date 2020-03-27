@@ -3,7 +3,7 @@ import pickle
 from tqdm import tqdm
 import time
 import math
-import copy
+from sklearn.feature_extraction.text import CountVectorizer, TfidfTransformer
 
 # Variable `data` contains all the data item with format of (label, text embedding, |embedding|^2). The embedding is
 # a vector of |V| dimension, where |V| is the size of vocabulary. The i-th element of this vector is 1 of this text
@@ -32,6 +32,27 @@ def calc_cos(arr1, arr2):
         if id1 in arr2[1]:
             inner += 1
     return inner / math.sqrt(arr1[2] * arr2[2])
+
+
+def build_data_from_sklearn():
+    """
+    Build the dataset and divide it into 10 parts.
+    """
+    global data
+    corpus = list(map(lambda item: " ".join(item[1]), all_data))
+    vectorizer = CountVectorizer()
+    transformer = TfidfTransformer()
+    tfidf = transformer.fit_transform(vectorizer.fit_transform(corpus)).toarray()
+    length = len(all_data)
+    for idx in range(length):
+        data.append([all_data[idx][0], tfidf[idx], np.linalg.norm(tfidf[idx])])
+
+    # divide the data into 10 parts
+    np.random.shuffle(data)
+    length = len(data) // 10
+    for idx in range(9):
+        data_arr.append(data[idx * length:(idx + 1) * length])
+    data_arr.append(data[9 * length:])
 
 
 def build_data():
