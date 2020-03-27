@@ -37,7 +37,7 @@ for i in range(9):
 data_arr.append(data[9 * length:])
 
 acc = []
-res_f = open("../res/res" + time.strftime("%Y-%m-%d-%H:%M:%S", time.localtime()), "w")
+res_f = open("../res/res-" + time.strftime("%Y-%m-%d-%H:%M:%S", time.localtime()) + ".txt", "w")
 for i in range(10):
     test_data = data_arr[i]
     train_data = []
