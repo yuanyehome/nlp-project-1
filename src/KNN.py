@@ -55,7 +55,7 @@ def build_data():
                 idx += 1
 
     # build vectors.
-    for item in tqdm(all_data, desc="processing vector:"):
+    for item in tqdm(all_data, desc="processing vector"):
         arr = np.zeros(idx)
         for word in item[1]:
             arr[word2idx[word]] = 1
