@@ -94,10 +94,47 @@ def build_data():
         arr = np.zeros(idx)
         for word in item[1]:
             arr[word2idx[word]] = 1
-        data.append(arr / np.linalg.norm(arr))
+        data.append(arr)
         labels.append(item[0])
     data = np.array(data)
     labels = np.array(labels)
+
+
+def build_data_2():
+    """
+    Build the dataset and divide it into 10 parts.
+    """
+    idx = 0
+    global data
+    global labels
+    global word2idx
+    global idx2word
+    global vocab_len
+
+    # build a index, which map a word into a index of embedding vector.
+    for item in all_data:
+        for word in item[1]:
+            if word not in word2idx.keys():
+                word2idx[word] = idx
+                idx2word[idx] = word
+                idx += 1
+    vocab_len = idx
+    # build vectors.
+    for item in tqdm(all_data, desc="processing passage vector"):
+        arr = np.zeros(idx)
+        for word in item[1]:
+            arr[word2idx[word]] += 1
+        data.append(arr)
+        labels.append(item[0])
+    data = np.array(data)
+    labels = np.array(labels)
+
+
+def normalize_data():
+    global data
+    print("Normalizing data ...")
+    data = np.array(list(map(lambda item: item / np.linalg.norm(item), data)))
+    print("Done!")
 
 
 def divide_data():
@@ -160,6 +197,7 @@ def run_test(idx):
 
 if __name__ == "__main__":
     build_data()
+    normalize_data()
     divide_data()
     for i in range(10):
         run_test(i)
