@@ -23,10 +23,21 @@ vocab_len = 0
 word2idx = {}
 idx2word = {}
 save_result = False
-DEBUG = True
+DEBUG = False
 np.random.seed(0)
 with open("./data/all_data.pkl", "rb") as f:
     all_data = pickle.load(f)
+if save_result:
+    res_f = open("./res/res-" + time.strftime("%Y-%m-%d-%H:%M:%S",
+                                              time.localtime()) + ".txt", "w")
+else:
+    res_f = None
+
+if DEBUG:
+    dbg_file = open("dbg-" + time.strftime("%Y-%m-%d-%H:%M:%S",
+                                           time.localtime()) + ".txt", "w")
+else:
+    dbg_file = None
 
 
 def get_res(train_data, train_labels, test_data, test_labels, raw_data=None):
@@ -66,7 +77,7 @@ def build_data():
     """
     idx = 0
     global data
-    global data_arr
+    global labels
     global word2idx
     global idx2word
     global vocab_len
@@ -86,6 +97,8 @@ def build_data():
             arr[word2idx[word]] = 1
         data.append(arr / np.linalg.norm(arr))
         labels.append(item[0])
+    data = np.array(data)
+    labels = np.array(labels)
 
 
 def divide_data():
@@ -137,12 +150,10 @@ def run_test(idx):
     print("accuracy in test%d : %f" % (idx, acc_num / all_num))
     print("elapsed time: %s s" % (time.time() - start_time))
     if save_result:
-        with open("../res/res-" + time.strftime("%Y-%m-%d-%H:%M:%S",
-                                                time.localtime()) + ".txt", "w") as res_f:
-            print("accuracy in test%d : %f" %
-                  (idx, acc_num / all_num), file=res_f)
-            print("elapsed time: %s s" %
-                  (time.time() - start_time), file=res_f)
+        print("accuracy in test%d : %f" %
+              (idx, acc_num / all_num), file=res_f)
+        print("elapsed time: %s s" %
+              (time.time() - start_time), file=res_f)
 
 
 if __name__ == "__main__":
@@ -154,7 +165,5 @@ if __name__ == "__main__":
     print("average accuracy: %f" % (np.mean(acc)))
     print("total time: %s s" % (time.time() - start_time))
     if save_result:
-        with open("../res/res-" + time.strftime("%Y-%m-%d-%H:%M:%S",
-                                                time.localtime()) + ".txt", "w") as res_f:
-            print("average accuracy: %f" % (np.mean(acc)), file=res_f)
-            print("total time: %s s" % (time.time() - start_time), file=res_f)
+        print("average accuracy: %f" % (np.mean(acc)), file=res_f)
+        print("total time: %s s" % (time.time() - start_time), file=res_f)
