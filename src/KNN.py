@@ -34,8 +34,8 @@ else:
     res_f = None
 
 if DEBUG:
-    dbg_file = open("dbg-" + time.strftime("%Y-%m-%d-%H:%M:%S",
-                                           time.localtime()) + ".txt", "w")
+    dbg_file = open("./dbg/dbg-" + time.strftime("%Y-%m-%d-%H:%M:%S",
+                                                 time.localtime()) + ".txt", "w")
 else:
     dbg_file = None
 
