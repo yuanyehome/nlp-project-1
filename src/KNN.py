@@ -2,6 +2,8 @@ import numpy as np
 import pickle
 from tqdm import tqdm
 import time
+from my_utils import utils
+import sys
 
 # Variable `data` contains all the data item with format of (label, text embedding, |embedding|^2). The embedding is
 # a vector of |V| dimension, where |V| is the size of vocabulary. The i-th element of this vector is 1 of this text
@@ -23,7 +25,12 @@ word2idx = {}
 idx2word = {}
 save_result = False
 DEBUG = False
-np.random.seed(0)
+if "-save" in sys.argv:
+    save_result = True
+if "-debug" in sys.argv:
+    DEBUG = True
+if "-seed" in sys.argv:
+    np.random.seed(int(sys.argv[-1]))
 with open("./data/all_data.pkl", "rb") as f:
     all_data = pickle.load(f)
 if save_result:
@@ -197,6 +204,8 @@ def run_test(idx):
 
 if __name__ == "__main__":
     build_data()
+    select = utils(all_data, word2idx)
+    data = select.naive_select(data)
     normalize_data()
     divide_data()
     for i in range(10):
