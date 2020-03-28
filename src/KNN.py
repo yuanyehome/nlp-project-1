@@ -32,7 +32,10 @@ if "-save" in sys.argv:
 if "-debug" in sys.argv:
     DEBUG = True
 if "-seed" in sys.argv:
-    np.random.seed(int(sys.argv[-1]))
+    if sys.argv[-1] == 'time':
+        np.random.seed(int(time.time()))
+    else:
+        np.random.seed(int(sys.argv[-1]))
 with open("./data/all_data.pkl", "rb") as f:
     all_data = pickle.load(f)
 if save_result:
