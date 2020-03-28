@@ -2,7 +2,6 @@ import numpy as np
 import pickle
 from tqdm import tqdm
 import time
-from sklearn.feature_extraction.text import CountVectorizer, TfidfTransformer
 
 # Variable `data` contains all the data item with format of (label, text embedding, |embedding|^2). The embedding is
 # a vector of |V| dimension, where |V| is the size of vocabulary. The i-th element of this vector is 1 of this text
@@ -105,6 +104,7 @@ def divide_data():
     """
     divide the data into 10 parts
     """
+    print("Splitting data ...")
     global data, labels, all_data
     zip_data = list(zip(data, labels, all_data))
     np.random.shuffle(zip_data)
@@ -121,12 +121,14 @@ def divide_data():
     data_arr.append(data[9 * length:])
     label_arr.append(labels[9 * length:])
     raw_data_arr.append(all_data[9 * length:])
+    print("Done!")
 
 
 def run_test(idx):
     """
     Use data_arr[i] as test set and the left data as train set.
     """
+    print("Running test %d ..." % (idx))
     # get test data and train data
     test_data = data_arr[i]
     test_labels = label_arr[i]
