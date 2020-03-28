@@ -4,6 +4,7 @@ from tqdm import tqdm
 import time
 from my_utils import utils
 import sys
+import math
 
 # Variable `data` contains all the data item with format of (label, text embedding, |embedding|^2). The embedding is
 # a vector of |V| dimension, where |V| is the size of vocabulary. The i-th element of this vector is 1 of this text
@@ -25,6 +26,7 @@ word2idx = {}
 idx2word = {}
 save_result = False
 DEBUG = False
+np.random.seed(0)
 if "-save" in sys.argv:
     save_result = True
 if "-debug" in sys.argv:
@@ -56,13 +58,21 @@ def get_res(train_data, train_labels, test_data, test_labels, raw_data=None):
 
     for res in res_data:
         idxs = np.argpartition(res, -K)[-K:]
-        K_labels = list(map(lambda id_: train_labels[id_], idxs))
-        all_top_K.append(K_labels)
+        ress = res[idxs]
+        tmp = list(zip(idxs, ress))
+        tmp.sort(key=lambda item: item[1], reverse=True)
+        idxs, ress = list(zip(*tmp))
+        idxs = list(idxs)
+        K_labels = train_labels[idxs]
+        all_top_K.append(list(zip(K_labels, ress)))
         label_dict = {}
         Max = 0
         pred = None
-        for label in K_labels:
+        for (i, label) in enumerate(K_labels):
+            if ress[i] == 0:
+                continue
             label_dict.setdefault(label, 0)
+            # label_dict[label] += ress[i]
             label_dict[label] += 1
             if label_dict[label] > Max:
                 Max = label_dict[label]
@@ -72,6 +82,8 @@ def get_res(train_data, train_labels, test_data, test_labels, raw_data=None):
     if raw_data and DEBUG:
         false_idxs = np.where((pred_labels == test_labels) == False)[0]
         for idx in false_idxs:
+            print("pred: %s    real: %s    text: %s" %
+                  (pred_labels[idx], test_labels[idx], raw_data[idx][1]))
             print("pred: %s    real: %s    text: %s" %
                   (pred_labels[idx], test_labels[idx], raw_data[idx][1]), file=dbg_file)
     return acc_num
