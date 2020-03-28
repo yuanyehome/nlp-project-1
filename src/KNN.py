@@ -19,23 +19,33 @@ label_arr = []
 acc = []
 K = 20
 save_result = False
+np.random.seed(0)
 with open("../data/all_data.pkl", "rb") as f:
     all_data = pickle.load(f)
 
 
-def build_data_from_sklearn():
+def get_res(train_data, train_labels, test_data, test_labels):
     """
-    Build the dataset and divide it into 10 parts.
+    get the number of correct prediction
     """
-    global data
-    corpus = list(map(lambda item: " ".join(item[1]), all_data))
-    vectorizer = CountVectorizer()
-    transformer = TfidfTransformer()
-    tfidf = transformer.fit_transform(vectorizer.fit_transform(corpus)).toarray()
-    length = len(all_data)
-    for idx in range(length):
-        data.append(tfidf[idx] / np.linalg.norm(tfidf[idx]))
-        labels.append(all_data[idx][0])
+    res_data = np.matmul(test_data, train_data.T)
+    pred_labels = []
+
+    for res in res_data:
+        idxs = np.argpartition(res, -K)[-K:]
+        K_labels = map(lambda id_: train_labels[id_], idxs)
+        label_dict = {}
+        Max = 0
+        pred = None
+        for label in K_labels:
+            label_dict.setdefault(label, 0)
+            label_dict[label] += 1
+            if label_dict[label] > Max:
+                Max = label_dict[label]
+                pred = label
+        pred_labels.append(pred)
+    acc_num = np.sum(pred_labels == test_labels)
+    return acc_num
 
 
 def build_data():
@@ -55,7 +65,7 @@ def build_data():
                 idx += 1
 
     # build vectors.
-    for item in tqdm(all_data, desc="processing vector"):
+    for item in tqdm(all_data, desc="processing passage vector"):
         arr = np.zeros(idx)
         for word in item[1]:
             arr[word2idx[word]] = 1
@@ -85,7 +95,6 @@ def run_test(idx):
     """
     Use data_arr[i] as test set and the left data as train set.
     """
-
     # get test data and train data
     test_data = data_arr[i]
     test_labels = label_arr[i]
@@ -101,40 +110,27 @@ def run_test(idx):
     train_data = np.array(train_data)
     test_labels = np.array(test_labels)
     train_labels = np.array(train_labels)
-    res_data = np.matmul(test_data, train_data.T)
-    pred_labels = []
 
-    for res in res_data:
-        idxs = np.argpartition(res, -K)[-K:]
-        K_labels = map(lambda id_: train_labels[id_], idxs)
-        label_dict = {}
-        Max = 0
-        pred = None
-        for label in K_labels:
-            label_dict.setdefault(label, 0)
-            label_dict[label] += 1
-            if label_dict[label] > Max:
-                Max = label_dict[label]
-                pred = label
-        pred_labels.append(pred)
-    acc_num = np.sum(pred_labels == test_labels)
-
-    # for each item in test set, find the k-nearest-neighbor.
+    acc_num = get_res(train_data, train_labels, test_data, test_labels)
     acc.append(acc_num / all_num)
-    print("accuracy in test%d : %f" % (i, acc_num / all_num))
+
+    print("accuracy in test%d : %f" % (idx, acc_num / all_num))
     print("elapsed time: %s s" % (time.time() - start_time))
     if save_result:
         with open("../res/res-" + time.strftime("%Y-%m-%d-%H:%M:%S",
                                                 time.localtime()) + ".txt", "w") as res_f:
-            print("accuracy in test%d : %f" % (i, acc_num / all_num), file=res_f)
-            print("elapsed time: %s s" % (time.time() - start_time), file=res_f)
+            print("accuracy in test%d : %f" %
+                  (idx, acc_num / all_num), file=res_f)
+            print("elapsed time: %s s" %
+                  (time.time() - start_time), file=res_f)
 
 
 if __name__ == "__main__":
-    build_data_from_sklearn()
+    build_data()
     divide_data()
     for i in range(10):
         run_test(i)
+
     print("average accuracy: %f" % (np.mean(acc)))
     print("total time: %s s" % (time.time() - start_time))
     if save_result:
