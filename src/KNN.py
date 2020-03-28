@@ -75,7 +75,7 @@ def get_res(train_data, train_labels, test_data, test_labels, raw_data=None):
             if ress[i] == 0:
                 continue
             label_dict.setdefault(label, 0)
-            # label_dict[label] += ress[i]
+            label_dict[label] += ress[i]
             label_dict[label] += 1
             if label_dict[label] > Max:
                 Max = label_dict[label]
