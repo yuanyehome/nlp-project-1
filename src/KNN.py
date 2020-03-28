@@ -131,7 +131,7 @@ def run_test(idx):
 
 
 if __name__ == "__main__":
-    build_data()
+    build_data_from_sklearn()
     divide_data()
     for i in range(10):
         run_test(i)
