@@ -16,24 +16,31 @@ data = []
 labels = []
 data_arr = []
 label_arr = []
+raw_data_arr = []
 acc = []
 K = 20
+vocab_len = 0
+word2idx = {}
+idx2word = {}
 save_result = False
+DEBUG = True
 np.random.seed(0)
-with open("../data/all_data.pkl", "rb") as f:
+with open("./data/all_data.pkl", "rb") as f:
     all_data = pickle.load(f)
 
 
-def get_res(train_data, train_labels, test_data, test_labels):
+def get_res(train_data, train_labels, test_data, test_labels, raw_data=None):
     """
     get the number of correct prediction
     """
     res_data = np.matmul(test_data, train_data.T)
     pred_labels = []
+    all_top_K = []
 
     for res in res_data:
         idxs = np.argpartition(res, -K)[-K:]
-        K_labels = map(lambda id_: train_labels[id_], idxs)
+        K_labels = list(map(lambda id_: train_labels[id_], idxs))
+        all_top_K.append(K_labels)
         label_dict = {}
         Max = 0
         pred = None
@@ -45,6 +52,11 @@ def get_res(train_data, train_labels, test_data, test_labels):
                 pred = label
         pred_labels.append(pred)
     acc_num = np.sum(pred_labels == test_labels)
+    if raw_data and DEBUG:
+        false_idxs = np.where((pred_labels == test_labels) == False)[0]
+        for idx in false_idxs:
+            print("pred: %s    real: %s    text: %s" %
+                  (pred_labels[idx], test_labels[idx], raw_data[idx][1]))
     return acc_num
 
 
@@ -52,18 +64,21 @@ def build_data():
     """
     Build the dataset and divide it into 10 parts.
     """
-    word2idx = {}
     idx = 0
     global data
     global data_arr
+    global word2idx
+    global idx2word
+    global vocab_len
 
     # build a index, which map a word into a index of embedding vector.
     for item in all_data:
         for word in item[1]:
             if word not in word2idx.keys():
                 word2idx[word] = idx
+                idx2word[idx] = word
                 idx += 1
-
+    vocab_len = idx
     # build vectors.
     for item in tqdm(all_data, desc="processing passage vector"):
         arr = np.zeros(idx)
@@ -77,18 +92,22 @@ def divide_data():
     """
     divide the data into 10 parts
     """
-    global data, labels
-    zip_data = list(zip(data, labels))
+    global data, labels, all_data
+    zip_data = list(zip(data, labels, all_data))
     np.random.shuffle(zip_data)
-    data, labels = list(zip(*zip_data))
+    data, labels, all_data = list(zip(*zip_data))
     data = list(data)
     labels = list(labels)
+    all_data = list(all_data)
+
     length = len(data) // 10
     for idx in range(9):
         data_arr.append(data[idx * length:(idx + 1) * length])
         label_arr.append(labels[idx * length:(idx + 1) * length])
+        raw_data_arr.append(all_data[idx * length:(idx + 1) * length])
     data_arr.append(data[9 * length:])
     label_arr.append(labels[9 * length:])
+    raw_data_arr.append(all_data[9 * length:])
 
 
 def run_test(idx):
@@ -111,7 +130,8 @@ def run_test(idx):
     test_labels = np.array(test_labels)
     train_labels = np.array(train_labels)
 
-    acc_num = get_res(train_data, train_labels, test_data, test_labels)
+    acc_num = get_res(train_data, train_labels, test_data,
+                      test_labels, raw_data_arr[i])
     acc.append(acc_num / all_num)
 
     print("accuracy in test%d : %f" % (idx, acc_num / all_num))
