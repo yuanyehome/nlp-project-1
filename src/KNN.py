@@ -67,7 +67,7 @@ def get_res(train_data, train_labels, test_data, test_labels, raw_data=None):
         false_idxs = np.where((pred_labels == test_labels) == False)[0]
         for idx in false_idxs:
             print("pred: %s    real: %s    text: %s" %
-                  (pred_labels[idx], test_labels[idx], raw_data[idx][1]))
+                  (pred_labels[idx], test_labels[idx], raw_data[idx][1]), file=dbg_file)
     return acc_num
 
 
