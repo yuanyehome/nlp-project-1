@@ -3,50 +3,38 @@ import pickle
 from tqdm import tqdm
 import time
 from my_utils import utils
+from DataBuilder import DataBuilder
 import sys
 import math
 
-# Variable `data` contains all the data item with format of (label, text embedding, |embedding|^2). The embedding is
-# a vector of |V| dimension, where |V| is the size of vocabulary. The i-th element of this vector is 1 of this text
-# contains word_i, else 0.
-# Divide the data into 10 parts, we can get `data_arr`
-# Variable `acc` records the accuracy of each test.
-# Variable `res_f` is the file which the result will be written to.
+
 start_time = time.time()
-data = []
-labels = []
-data_arr = []
-label_arr = []
-raw_data_arr = []
-acc = []
-vocab_len = 0
-word2idx = {}
-idx2word = {}
 save_result = False
 DEBUG = False
 np.random.seed(0)
-if "-save" in sys.argv:
-    save_result = True
-if "-debug" in sys.argv:
-    DEBUG = True
-if "-seed" in sys.argv:
-    if sys.argv[-1] == 'time':
-        np.random.seed(int(time.time()))
-    else:
-        np.random.seed(int(sys.argv[-1]))
-with open("./data/all_data.pkl", "rb") as f:
-    all_data = pickle.load(f)
-if save_result:
-    res_f = open("./res/res-" + time.strftime("%Y-%m-%d-%H:%M:%S",
-                                              time.localtime()) + ".txt", "w")
-else:
-    res_f = None
 
-if DEBUG:
-    dbg_file = open("./dbg/dbg-" + time.strftime("%Y-%m-%d-%H:%M:%S",
-                                                 time.localtime()) + ".txt", "w")
-else:
-    dbg_file = None
+
+def process_args():
+    if "-save" in sys.argv:
+        save_result = True
+    if "-debug" in sys.argv:
+        DEBUG = True
+    if "-seed" in sys.argv:
+        if sys.argv[-1] == 'time':
+            np.random.seed(int(time.time()))
+        else:
+            np.random.seed(int(sys.argv[-1]))
+    if save_result:
+        res_f = open("./res/res-" +
+                     time.strftime("%Y-%m-%d-%H:%M:%S", time.localtime()) + ".txt", "w")
+    else:
+        res_f = None
+
+    if DEBUG:
+        dbg_file = open("./dbg/dbg-" +
+                        time.strftime("%Y-%m-%d-%H:%M:%S", time.localtime()) + ".txt", "w")
+    else:
+        dbg_file = None
 
 
 def get_res(train_data, train_labels, test_data, test_labels, raw_data=None, K=20):
@@ -112,95 +100,7 @@ def search_K(train_data, train_labels):
     return best_K
 
 
-def build_vocab():
-    """
-    Build vocabulary
-    """
-    idx = 0
-    global data
-    global labels
-    global word2idx
-    global idx2word
-    global vocab_len
-    for item in all_data:
-        for word in item[1]:
-            if word not in word2idx.keys():
-                word2idx[word] = idx
-                idx2word[idx] = word
-                idx += 1
-        labels.append(item[0])
-    vocab_len = idx
-    labels = np.array(labels)
-
-
-def build_data():
-    """
-    Build the dataset and divide it into 10 parts.
-    """
-    global data
-    global word2idx
-    global idx2word
-    global vocab_len
-
-    # build vectors.
-    for item in tqdm(all_data, desc="processing passage vector"):
-        arr = np.zeros(vocab_len)
-        for word in item[1]:
-            arr[word2idx[word]] = 1
-        data.append(arr)
-    data = np.array(data)
-
-
-def build_data_2():
-    """
-    Build the dataset and divide it into 10 parts.
-    """
-    global data
-    global word2idx
-    global idx2word
-    global vocab_len
-
-    # build vectors.
-    for item in tqdm(all_data, desc="processing passage vector"):
-        arr = np.zeros(vocab_len)
-        for word in item[1]:
-            arr[word2idx[word]] += 1
-        data.append(arr)
-    data = np.array(data)
-
-
-def normalize_data():
-    global data
-    print("Normalizing data ...")
-    data = np.array(list(map(lambda item: item / np.linalg.norm(item), data)))
-    print("Done!")
-
-
-def divide_data():
-    """
-    divide the data into 10 parts
-    """
-    print("Splitting data ...")
-    global data, labels, all_data
-    zip_data = list(zip(data, labels, all_data))
-    np.random.shuffle(zip_data)
-    data, labels, all_data = list(zip(*zip_data))
-    data = list(data)
-    labels = list(labels)
-    all_data = list(all_data)
-
-    length = len(data) // 10
-    for idx in range(9):
-        data_arr.append(data[idx * length:(idx + 1) * length])
-        label_arr.append(labels[idx * length:(idx + 1) * length])
-        raw_data_arr.append(all_data[idx * length:(idx + 1) * length])
-    data_arr.append(data[9 * length:])
-    label_arr.append(labels[9 * length:])
-    raw_data_arr.append(all_data[9 * length:])
-    print("Done!")
-
-
-def run_test(idx):
+def run_test(idx, data_arr, label_arr, raw_data_arr, acc):
     """
     Use data_arr[i] as test set and the left data as train set.
     """
@@ -236,15 +136,19 @@ def run_test(idx):
 
 
 if __name__ == "__main__":
-    build_vocab()
-    # build_data()
-    select = utils(all_data, word2idx)
-    data = select.get_Tf_idf()
-    data = select.naive_select(data)
-    normalize_data()
-    divide_data()
+    # process_args()
+    path = "./data/all_data.pkl"
+    db = DataBuilder(path)
+    db.build_vocab()
+    db.build_data()
+    select = utils(db.all_data, db.word2idx)
+    # data = select.get_Tf_idf()
+    db.data = select.naive_select(db.data)
+    db.normalize_data()
+    db.divide_data()
+    acc = []
     for i in range(10):
-        run_test(i)
+        run_test(i, db.data_arr, db.label_arr, db.raw_data_arr, acc)
 
     print("average accuracy: %f" % (np.mean(acc)))
     print("total time: %s s" % (time.time() - start_time))
