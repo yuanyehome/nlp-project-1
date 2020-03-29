@@ -63,8 +63,16 @@ class utils:
         print("Done!")
         return self.tfidf
 
-    def select_by_Tf_idf(self):
-        pass
+    def select_by_Tf_idf(self, in_data, k=2):
+        assert(self.tfidf is not None)
+        args = self.tfidf.argsort()
+        idxs = np.array([], dtype=int)
+        passage_num = len(self.tfidf)
+        for i in range(passage_num):
+            idxs = np.append(idxs, args[i][-k:])
+        selected_idxs = np.unique(idxs)
+        print("number of features selected: %d" % (len(selected_idxs)))
+        return in_data[:, selected_idxs]
 
     def naive_select(self, in_data, K=15000):
         """
@@ -73,6 +81,7 @@ class utils:
         sum_res = self.data.sum(axis=0)
         idxs = np.argpartition(sum_res, -K)[-K:]
         idxs = np.sort(idxs)
+        self.selected_idxs = idxs
         return in_data[:, idxs]
 
 

@@ -12,10 +12,12 @@ start_time = time.time()
 save_result = False
 DEBUG = False
 np.random.seed(0)
+res_f = None
+dbg_file = None
 
 
 def process_args():
-    global save_result, DEBUG
+    global save_result, DEBUG, res_f, dbg_file
     if "-save" in sys.argv:
         save_result = True
     if "-debug" in sys.argv:
@@ -28,14 +30,10 @@ def process_args():
     if save_result:
         res_f = open("./res/res-" +
                      time.strftime("%Y-%m-%d-%H:%M:%S", time.localtime()) + ".txt", "w")
-    else:
-        res_f = None
 
     if DEBUG:
         dbg_file = open("./dbg/dbg-" +
                         time.strftime("%Y-%m-%d-%H:%M:%S", time.localtime()) + ".txt", "w")
-    else:
-        dbg_file = None
 
 
 def get_res(train_data, train_labels, test_data, test_labels, raw_data=None, K=20):
@@ -124,7 +122,7 @@ def run_test(idx, data_arr, label_arr, raw_data_arr, acc):
 
     print("Running test %d ..." % (idx))
     acc_num = get_res(train_data, train_labels, test_data,
-                      test_labels, raw_data_arr[i])
+                      test_labels, raw_data_arr[i], 40)
     acc.append(acc_num / all_num)
 
     print("accuracy in test%d : %f" % (idx, acc_num / all_num))
@@ -144,6 +142,7 @@ if __name__ == "__main__":
     # db.build_data()
     select = utils(db.all_data, db.word2idx)
     db.data = select.get_Tf_idf()
+    # db.data = select.select_by_Tf_idf(db.data)
     db.data = select.naive_select(db.data)
     db.normalize_data()
     db.divide_data()
