@@ -112,9 +112,9 @@ def search_K(train_data, train_labels):
     return best_K
 
 
-def build_data():
+def build_vocab():
     """
-    Build the dataset and divide it into 10 parts.
+    Build vocabulary
     """
     idx = 0
     global data
@@ -122,54 +122,51 @@ def build_data():
     global word2idx
     global idx2word
     global vocab_len
-
-    # build a index, which map a word into a index of embedding vector.
     for item in all_data:
         for word in item[1]:
             if word not in word2idx.keys():
                 word2idx[word] = idx
                 idx2word[idx] = word
                 idx += 1
+        labels.append(item[0])
     vocab_len = idx
+    labels = np.array(labels)
+
+
+def build_data():
+    """
+    Build the dataset and divide it into 10 parts.
+    """
+    global data
+    global word2idx
+    global idx2word
+    global vocab_len
+
     # build vectors.
     for item in tqdm(all_data, desc="processing passage vector"):
-        arr = np.zeros(idx)
+        arr = np.zeros(vocab_len)
         for word in item[1]:
             arr[word2idx[word]] = 1
         data.append(arr)
-        labels.append(item[0])
     data = np.array(data)
-    labels = np.array(labels)
 
 
 def build_data_2():
     """
     Build the dataset and divide it into 10 parts.
     """
-    idx = 0
     global data
-    global labels
     global word2idx
     global idx2word
     global vocab_len
 
-    # build a index, which map a word into a index of embedding vector.
-    for item in all_data:
-        for word in item[1]:
-            if word not in word2idx.keys():
-                word2idx[word] = idx
-                idx2word[idx] = word
-                idx += 1
-    vocab_len = idx
     # build vectors.
     for item in tqdm(all_data, desc="processing passage vector"):
-        arr = np.zeros(idx)
+        arr = np.zeros(vocab_len)
         for word in item[1]:
             arr[word2idx[word]] += 1
         data.append(arr)
-        labels.append(item[0])
     data = np.array(data)
-    labels = np.array(labels)
 
 
 def normalize_data():
@@ -239,8 +236,10 @@ def run_test(idx):
 
 
 if __name__ == "__main__":
-    build_data()
+    build_vocab()
+    # build_data()
     select = utils(all_data, word2idx)
+    data = select.get_Tf_idf()
     data = select.naive_select(data)
     normalize_data()
     divide_data()

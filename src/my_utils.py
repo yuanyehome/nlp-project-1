@@ -1,6 +1,7 @@
 import numpy as np
 import pickle
 import matplotlib.pyplot as plt
+import copy
 
 
 class utils:
@@ -18,6 +19,7 @@ class utils:
                 self.data[i][word2idx[word]] += 1
 
     def PCA(self, in_data, labels, N=2):
+        # 60000的维数根本降不下来……
         mean_data = in_data - np.mean(in_data, axis=0)
         cov = np.cov(mean_data, rowvar=False)
         eigVals, eigVects = np.linalg.eig(cov)
@@ -39,10 +41,22 @@ class utils:
         plt.savefig('./res/pca.png', dpi=600)
         # plt.show()
 
-    def get_Tf_idf(self, in_data, K=15000):
-        pass
+    def get_Tf_idf(self):
+        print("Calculating tf-idf")
+        self.tfidf = copy.deepcopy(self.data)
+        passage_num = len(self.tfidf)
+        word_num = self.tfidf.shape[1]
+        row_sum = np.sum(self.tfidf, axis=1).reshape(
+            [passage_num, 1]).repeat(word_num, axis=1)
+        self.tfidf /= row_sum
+        col_sum = np.log(passage_num / np.sum(self.tfidf > 0, axis=0)) \
+                    .reshape([1, word_num]) \
+                    .repeat(passage_num, axis=0)
+        self.tfidf *= col_sum
+        print("Done!")
+        return self.tfidf
 
-    def select_by_Tf_idf(self, in_data):
+    def select_by_Tf_idf(self):
         pass
 
     def naive_select(self, in_data, K=15000):
@@ -71,5 +85,6 @@ if __name__ == "__main__":
         labels.append(item[0])
     labels = np.array(labels)
     select = utils(all_data, word2idx)
-    data = select.naive_select(data, 5000)
-    select.PCA(data, labels)
+    # data = select.naive_select(data, 5000)
+    # select.PCA(data, labels)
+    tfidf = select.get_Tf_idf()

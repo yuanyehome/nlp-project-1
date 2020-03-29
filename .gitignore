@@ -4,3 +4,4 @@ res/*
 data/new_weibo_13638/**
 .env
 dbg/*
+**/__pycache__/**
