@@ -6,6 +6,7 @@ from my_utils import utils
 from DataBuilder import DataBuilder
 import sys
 import math
+from functools import reduce
 
 
 start_time = time.time()
@@ -14,6 +15,7 @@ DEBUG = False
 np.random.seed(0)
 res_f = None
 dbg_file = None
+dbg_print_detail = True
 
 
 def process_args():
@@ -34,6 +36,28 @@ def process_args():
     if DEBUG:
         dbg_file = open("./dbg/dbg-" +
                         time.strftime("%Y-%m-%d-%H:%M:%S", time.localtime()) + ".txt", "w")
+
+
+def print_detail(pred_label_arr, label_arr, res_f=None):
+    pred_labels = reduce(lambda p, q: p + q, pred_label_arr)
+    std_labels = reduce(lambda p, q: p + q, label_arr)
+    all_labels = np.unique(std_labels)
+    label_class = {}
+    corr_class = {}
+    for label in all_labels:
+        label_class.setdefault(label, 0)
+        corr_class.setdefault(label, 0)
+    for (pred, std) in zip(pred_labels, std_labels):
+        label_class[std] += 1
+        corr_class[std] += (pred == std)
+    for label in all_labels:
+        print("label: %s  num: %-4d  corr: %-4d  acc:%.2f%%" % (
+            label, label_class[label], corr_class[label],
+            100 * corr_class[label] / label_class[label]))
+        if res_f is not None:
+            print("label: %s  num: %-4d  corr: %-4d  acc:%.2f%%" % (
+                label, label_class[label], corr_class[label],
+                100 * corr_class[label] / label_class[label]), file=res_f)
 
 
 def get_res(train_data, train_labels, test_data, test_labels, raw_data=None, K=20):
@@ -75,7 +99,7 @@ def get_res(train_data, train_labels, test_data, test_labels, raw_data=None, K=2
                   (pred_labels[idx], test_labels[idx], raw_data[idx][1]))
             print("pred: %s    real: %s    text: %s" %
                   (pred_labels[idx], test_labels[idx], raw_data[idx][1]), file=dbg_file)
-    return acc_num
+    return acc_num, pred_labels
 
 
 def search_K(train_data, train_labels):
@@ -99,7 +123,7 @@ def search_K(train_data, train_labels):
     return best_K
 
 
-def run_test(idx, data_arr, label_arr, raw_data_arr, acc):
+def run_test(idx, data_arr, label_arr, raw_data_arr, acc, all_pred_labels, selector):
     """
     Use data_arr[i] as test set and the left data as train set.
     """
@@ -118,11 +142,15 @@ def run_test(idx, data_arr, label_arr, raw_data_arr, acc):
     train_data = np.array(train_data)
     test_labels = np.array(test_labels)
     train_labels = np.array(train_labels)
+    # selected_idxs = selector.chi_square(train_data, train_labels)
+    # train_data = train_data[:, selected_idxs]
+    # test_data = test_data[:, selected_idxs]
     # K = search_K(train_data, train_labels)
 
     print("Running test %d ..." % (idx))
-    acc_num = get_res(train_data, train_labels, test_data,
-                      test_labels, raw_data_arr[i], 40)
+    acc_num, pred_labels = get_res(train_data, train_labels, test_data,
+                                   test_labels, raw_data_arr[i], 40)
+    all_pred_labels.append(pred_labels)
     acc.append(acc_num / all_num)
 
     print("accuracy in test%d : %f" % (idx, acc_num / all_num))
@@ -143,15 +171,18 @@ if __name__ == "__main__":
     select = utils(db.all_data, db.word2idx)
     db.data = select.get_Tf_idf()
     # db.data = select.select_by_Tf_idf(db.data)
-    db.data = select.naive_select(db.data)
+    db.data = select.naive_select(db.data, 15000)
     db.normalize_data()
     db.divide_data()
     acc = []
+    all_pred_labels = []
     for i in range(10):
-        run_test(i, db.data_arr, db.label_arr, db.raw_data_arr, acc)
-
+        run_test(i, db.data_arr, db.label_arr,
+                 db.raw_data_arr, acc, all_pred_labels, select)
     print("average accuracy: %f" % (np.mean(acc)))
     print("total time: %s s" % (time.time() - start_time))
     if save_result:
         print("average accuracy: %f" % (np.mean(acc)), file=res_f)
         print("total time: %s s" % (time.time() - start_time), file=res_f)
+    if dbg_print_detail:
+        print_detail(all_pred_labels, db.label_arr, res_f)

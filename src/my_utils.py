@@ -7,6 +7,7 @@ import copy
 class utils:
     data = None
     tfidf = None
+    label_class = []
 
     def __init__(self, raw_data, word2idx):
         """
@@ -17,6 +18,8 @@ class utils:
         for (i, item) in enumerate(raw_data):
             for word in item[1]:
                 self.data[i][word2idx[word]] += 1
+            self.label_class.append(item[0])
+        self.label_class = np.unique(self.label_class)
 
     def PCA(self, in_data, labels, N=2):
         """
@@ -83,6 +86,22 @@ class utils:
         idxs = np.sort(idxs)
         self.selected_idxs = idxs
         return in_data[:, idxs]
+
+    def chi_square(self, in_data, labels, K=15000):
+        passage_num = len(in_data)
+        chi_square_score = []
+        for label in self.label_class:
+            label_data = in_data[np.where(labels == label)]
+            not_label_data = in_data[np.where(labels != label)]
+            A = np.sum(label_data > 0, axis=0)
+            B = np.sum(not_label_data > 0, axis=0)
+            C = len(label_data) - A
+            D = len(not_label_data) - B
+            chi_square_score.append((A * D - B * C + 1e-7) ** 2 /
+                                    ((A + B) * (C + D) + 1e-5))
+        chi_square_score = np.max(chi_square_score, axis=0)
+        selected_idxs = np.argsort(chi_square_score)[-K:]
+        return selected_idxs
 
 
 def data_insight():
