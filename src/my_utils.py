@@ -23,7 +23,7 @@ class utils:
         Get 2d points using PCA.
         Print some other features.
         """
-        # 60000的维数根本降不下来……只能先选择少一点的特征再降维；
+        # 60000的维数求协方差矩阵特征值根本算不下来……只能先选择少一点的特征再降维；
         # 这样PCA做出来的二维图好像也看不出来啥东西……
         mean_data = in_data - np.mean(in_data, axis=0)
         cov = np.cov(mean_data, rowvar=False)

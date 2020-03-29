@@ -124,7 +124,7 @@ def run_test(idx, data_arr, label_arr, raw_data_arr, acc):
 
     print("Running test %d ..." % (idx))
     acc_num = get_res(train_data, train_labels, test_data,
-                      test_labels, raw_data_arr[i], K=15)
+                      test_labels, raw_data_arr[i])
     acc.append(acc_num / all_num)
 
     print("accuracy in test%d : %f" % (idx, acc_num / all_num))
