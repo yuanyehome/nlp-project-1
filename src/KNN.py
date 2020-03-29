@@ -12,7 +12,6 @@ import math
 # Divide the data into 10 parts, we can get `data_arr`
 # Variable `acc` records the accuracy of each test.
 # Variable `res_f` is the file which the result will be written to.
-# `K` is the hyperparameter.
 start_time = time.time()
 data = []
 labels = []
@@ -20,7 +19,6 @@ data_arr = []
 label_arr = []
 raw_data_arr = []
 acc = []
-K = 20
 vocab_len = 0
 word2idx = {}
 idx2word = {}
@@ -51,7 +49,7 @@ else:
     dbg_file = None
 
 
-def get_res(train_data, train_labels, test_data, test_labels, raw_data=None):
+def get_res(train_data, train_labels, test_data, test_labels, raw_data=None, K=20):
     """
     get the number of correct prediction
     """
@@ -77,6 +75,7 @@ def get_res(train_data, train_labels, test_data, test_labels, raw_data=None):
             label_dict.setdefault(label, 0)
             label_dict[label] += ress[i]
             label_dict[label] += 1
+            # +1 + ress[i]目前效果最好
             if label_dict[label] > Max:
                 Max = label_dict[label]
                 pred = label
@@ -90,6 +89,27 @@ def get_res(train_data, train_labels, test_data, test_labels, raw_data=None):
             print("pred: %s    real: %s    text: %s" %
                   (pred_labels[idx], test_labels[idx], raw_data[idx][1]), file=dbg_file)
     return acc_num
+
+
+def search_K(train_data, train_labels):
+    print("Searching for the best K ...")
+    best_K = 10
+    best_acc = 0
+    length = len(train_data)
+    tr_data = train_data[0:8 * (length // 9)]
+    val_data = train_data[8 * (length // 9):]
+    tr_labels = train_labels[0:8 * (length // 9)]
+    val_labels = train_labels[8 * (length // 9):]
+    all_num = len(val_data)
+    for i in range(100):
+        acc_num = get_res(tr_data, tr_labels, val_data, val_labels, K=i+10)
+        print("K: %d    accuracy: %f" % (i + 10, acc_num / all_num))
+        if acc_num > best_acc:
+            best_acc = acc_num
+            best_K = i + 10
+            print("Best K update")
+    print("Search done, the best K is %d" % (best_K))
+    return best_K
 
 
 def build_data():
@@ -187,7 +207,6 @@ def run_test(idx):
     """
     Use data_arr[i] as test set and the left data as train set.
     """
-    print("Running test %d ..." % (idx))
     # get test data and train data
     test_data = data_arr[i]
     test_labels = label_arr[i]
@@ -203,9 +222,11 @@ def run_test(idx):
     train_data = np.array(train_data)
     test_labels = np.array(test_labels)
     train_labels = np.array(train_labels)
+    # K = search_K(train_data, train_labels)
 
+    print("Running test %d ..." % (idx))
     acc_num = get_res(train_data, train_labels, test_data,
-                      test_labels, raw_data_arr[i])
+                      test_labels, raw_data_arr[i], K=15)
     acc.append(acc_num / all_num)
 
     print("accuracy in test%d : %f" % (idx, acc_num / all_num))
