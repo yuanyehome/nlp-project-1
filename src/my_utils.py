@@ -19,7 +19,12 @@ class utils:
                 self.data[i][word2idx[word]] += 1
 
     def PCA(self, in_data, labels, N=2):
-        # 60000的维数根本降不下来……
+        """
+        Get 2d points using PCA.
+        Print some other features.
+        """
+        # 60000的维数根本降不下来……只能先选择少一点的特征再降维；
+        # 这样PCA做出来的二维图好像也看不出来啥东西……
         mean_data = in_data - np.mean(in_data, axis=0)
         cov = np.cov(mean_data, rowvar=False)
         eigVals, eigVects = np.linalg.eig(cov)
@@ -39,9 +44,11 @@ class utils:
         plt.scatter(lowDDataMat[:, 0], lowDDataMat[:, 1], s=1, c=list(
             map(lambda label: colors[label2idx[label]], labels)))
         plt.savefig('./res/pca.png', dpi=600)
-        # plt.show()
 
     def get_Tf_idf(self):
+        """
+        Build text vectors based on tf-idf.
+        """
         print("Calculating tf-idf")
         self.tfidf = copy.deepcopy(self.data)
         passage_num = len(self.tfidf)
@@ -60,13 +67,16 @@ class utils:
         pass
 
     def naive_select(self, in_data, K=15000):
+        """
+        Select features by the frequency of word.
+        """
         sum_res = self.data.sum(axis=0)
         idxs = np.argpartition(sum_res, -K)[-K:]
         idxs = np.sort(idxs)
         return in_data[:, idxs]
 
 
-if __name__ == "__main__":
+def data_insight():
     f = open("./data/all_data.pkl", "rb")
     all_data = pickle.load(f)
     word2idx = {}
@@ -85,6 +95,9 @@ if __name__ == "__main__":
         labels.append(item[0])
     labels = np.array(labels)
     select = utils(all_data, word2idx)
-    # data = select.naive_select(data, 5000)
-    # select.PCA(data, labels)
-    tfidf = select.get_Tf_idf()
+    data = select.naive_select(data, 5000)
+    select.PCA(data, labels)
+
+
+if __name__ == "__main__":
+    data_insight()
