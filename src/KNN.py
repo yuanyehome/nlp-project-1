@@ -15,6 +15,7 @@ np.random.seed(0)
 
 
 def process_args():
+    global save_result, DEBUG
     if "-save" in sys.argv:
         save_result = True
     if "-debug" in sys.argv:
@@ -136,13 +137,13 @@ def run_test(idx, data_arr, label_arr, raw_data_arr, acc):
 
 
 if __name__ == "__main__":
-    # process_args()
+    process_args()
     path = "./data/all_data.pkl"
     db = DataBuilder(path)
     db.build_vocab()
-    db.build_data()
+    # db.build_data()
     select = utils(db.all_data, db.word2idx)
-    # data = select.get_Tf_idf()
+    db.data = select.get_Tf_idf()
     db.data = select.naive_select(db.data)
     db.normalize_data()
     db.divide_data()
