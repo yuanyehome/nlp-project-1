@@ -77,6 +77,28 @@ class utils:
         print("number of features selected: %d" % (len(selected_idxs)))
         return in_data[:, selected_idxs]
 
+    def select_by_KL(self, in_data, labels, K=15000):
+        word_num = in_data.shape[1]
+        label_class = np.unique(labels)
+        label_map = {}
+        label_num = len(label_class)
+        P = np.zeors(label_num)
+        for i in range(label_num):
+            label_map[label_class[i]] = i
+        for label in labels:
+            P[label_map[i]] += 1
+        P /= len(labels)
+        labels_arr = np.array([labels])
+        Q = []
+        for i in range(label_num):
+            tmp = np.sum((in_data > 0) *
+                         (np.repeat(labels_arr.T, word_num, axis=1) == label_class[i]), axis=0)
+            Q.append(tmp)
+        Q = np.array(Q)
+        Q /= np.repeat(np.sum(Q), label_num, axis=0)
+        P = np.repeat(np.reshape(P, [label_num, 1]), axis=0)
+        ans = np.sum(Q * np.log((Q + 1e-8) / P), axis=0)
+
     def naive_select(self, in_data, K=15000):
         """
         Select features by the frequency of word.
@@ -85,6 +107,7 @@ class utils:
         idxs = np.argpartition(sum_res, -K)[-K:]
         idxs = np.sort(idxs)
         self.selected_idxs = idxs
+        print("feature num: %d" % (len(idxs)))
         return in_data[:, idxs]
 
     def chi_square(self, in_data, labels, K=15000):
