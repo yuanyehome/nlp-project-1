@@ -8,7 +8,7 @@ import sys
 import math
 from functools import reduce
 
-
+# global variables：control some files and debug info.
 start_time = time.time()
 save_result = False
 DEBUG = False
@@ -19,6 +19,11 @@ dbg_print_detail = True
 
 
 def process_args():
+    """
+    process command line args.
+    support `-save`, `-debug`, `-seed [int]` or `seed time`.
+    note that `-seed` should be placed at the end of args
+    """
     global save_result, DEBUG, res_f, dbg_file
     if "-save" in sys.argv:
         save_result = True
@@ -39,6 +44,9 @@ def process_args():
 
 
 def print_detail(pred_label_arr, label_arr, res_f=None):
+    """
+    Print error rate of each label.
+    """
     pred_labels = reduce(lambda p, q: p + q, pred_label_arr)
     std_labels = reduce(lambda p, q: p + q, label_arr)
     all_labels = np.unique(std_labels)
@@ -62,7 +70,7 @@ def print_detail(pred_label_arr, label_arr, res_f=None):
 
 def get_res(train_data, train_labels, test_data, test_labels, raw_data=None, K=20):
     """
-    get the number of correct prediction
+    Given training set and test set, get the number of correct prediction.
     """
     res_data = np.matmul(test_data, train_data.T)
     pred_labels = []
@@ -84,9 +92,9 @@ def get_res(train_data, train_labels, test_data, test_labels, raw_data=None, K=2
             if ress[i] == 0:
                 continue
             label_dict.setdefault(label, 0)
+            # score = similarity + 1
             label_dict[label] += ress[i]
             label_dict[label] += 1
-            # +1 + ress[i]目前效果最好
             if label_dict[label] > Max:
                 Max = label_dict[label]
                 pred = label
@@ -101,6 +109,11 @@ def get_res(train_data, train_labels, test_data, test_labels, raw_data=None, K=2
 
 
 def search_K(train_data, train_labels):
+    """
+    Deprecated.
+    This function is used for searching the best K given a training set.
+    I divided 1/9 of training set as validation set, and search for the best K. 
+    """
     print("Searching for the best K ...")
     best_K = 10
     best_acc = 0
@@ -123,6 +136,7 @@ def search_K(train_data, train_labels):
 
 def run_test(idx, data_arr, label_arr, raw_data_arr, acc, all_pred_labels, selector):
     """
+    Run the i-th test.
     Use data_arr[i] as test set and the left data as train set.
     """
     # get test data and train data
@@ -143,6 +157,7 @@ def run_test(idx, data_arr, label_arr, raw_data_arr, acc, all_pred_labels, selec
     # selected_idxs = selector.select_by_KL(train_data, train_labels, 15000)
     # train_data = train_data[:, selected_idxs]
     # test_data = test_data[:, selected_idxs]
+    # Deprecated. Searching K is useless...
     # K = search_K(train_data, train_labels)
 
     print("Running test %d ..." % (idx))
@@ -167,11 +182,16 @@ if __name__ == "__main__":
     db.build_vocab()
     # db.build_data()
     select = utils(db.all_data, db.word2idx)
+    # [info] Use tf-idf as text embedding.
     db.data = select.get_Tf_idf()
     # db.data = select.select_by_Tf_idf(db.data)
+    # [info] get the idxs of most N frequent words
     idxs = select.naive_select(db.data, 15000)
+    # [info] save the selected features.
     db.select_features(idxs, DEBUG=DEBUG, dbg_file=dbg_file)
+    # [info] change the norm of each embedding to 1
     db.normalize_data()
+    # [info] divide the data into 10 parts
     db.divide_data()
     acc = []
     all_pred_labels = []

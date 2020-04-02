@@ -6,6 +6,9 @@ import re
 
 
 def is_number(num):
+    """
+    Judge whether a string is a number.
+    """
     pattern = re.compile(r'^[-+]?[-0-9]\d*\.\d*|[-+]?\.?[0-9]\d*$')
     result = pattern.match(num)
     if result:
@@ -77,6 +80,9 @@ class utils:
         return self.tfidf
 
     def select_by_Tf_idf(self, in_data, k=2):
+        """
+        Select features by tf-idf.
+        """
         assert(self.tfidf is not None)
         args = self.tfidf.argsort()
         idxs = np.array([], dtype=int)
@@ -88,6 +94,9 @@ class utils:
         return in_data[:, selected_idxs]
 
     def select_by_KL(self, in_data, labels, K=15000):
+        """
+        Select features by KL-divergence.
+        """
         word_num = in_data.shape[1]
         label_class = np.unique(labels)
         label_map = {}
@@ -126,6 +135,9 @@ class utils:
         return idxs
 
     def chi_square(self, in_data, labels, K=15000):
+        """
+        Select features by chi-square test
+        """
         passage_num = len(in_data)
         chi_square_score = []
         for label in self.label_class:
@@ -143,6 +155,9 @@ class utils:
 
 
 def data_insight():
+    """
+    Get some information of data
+    """
     f = open("./data/all_data.pkl", "rb")
     all_data = pickle.load(f)
     word2idx = {}

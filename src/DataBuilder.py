@@ -17,6 +17,9 @@ class DataBuilder:
     idx2word = {}
 
     def __init__(self, path):
+        """
+        Read data from given path
+        """
         with open(path, "rb") as f:
             self.all_data = pickle.load(f)
         for (i, item) in enumerate(self.all_data):
@@ -40,7 +43,8 @@ class DataBuilder:
 
     def build_data(self):
         """
-        Build data vectors by words' appearing.
+        Build binary data vectors by bag of words.
+        If the word is in this text, corresponding idx is 1, else 0.
         """
         assert(self.data == None)
         print("Generating text vectors")
@@ -95,6 +99,10 @@ class DataBuilder:
         print("Done!")
 
     def select_features(self, idxs, DEBUG, dbg_file):
+        """
+        Given idxs, save the selected features.
+        Clean some useless features, such as number.
+        """
         this_idxs = []
         for i in idxs:
             if is_number(self.idx2word[i]):
