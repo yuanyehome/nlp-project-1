@@ -50,6 +50,7 @@ class utils:
         lowDDataMat = np.matmul(mean_data, redEigVects)
         all_labels = np.unique(labels)
         print("label num: %d" % (len(all_labels)))
+        print("total data nunmber: %d" %(len(labels)))
         for label in all_labels:
             print("number of label %s: %d" % (label, np.sum(labels == label)))
         label2idx = {}
@@ -176,7 +177,8 @@ def data_insight():
         labels.append(item[0])
     labels = np.array(labels)
     select = utils(all_data, word2idx)
-    data = select.naive_select(data, 5000)
+    idxs = select.naive_select(data, 5000)
+    data = data[:, idxs]
     select.PCA(data, labels)
 
 

@@ -60,7 +60,7 @@ class DataBuilder:
         """
         assert(self.data == None)
         print("Generating text vectors")
-        self.data = np.zeros(self.passage_len, self.vocab_len)
+        self.data = np.zeros([self.passage_len, self.vocab_len])
         for (i, item) in enumerate(self.all_data):
             for word in item[1]:
                 self.data[i][self.word2idx[word]] += 1
