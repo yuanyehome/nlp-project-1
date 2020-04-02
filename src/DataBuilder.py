@@ -98,17 +98,18 @@ class DataBuilder:
         self.raw_data_arr.append(self.all_data[9 * length:])
         print("Done!")
 
-    def select_features(self, idxs, DEBUG, dbg_file):
+    def select_features(self, idxs, DEBUG, dbg_file, clean=False):
         """
         Given idxs, save the selected features.
-        Clean some useless features, such as number.
+        Clean some useless features, such as number if clean is True.
         """
-        this_idxs = []
-        for i in idxs:
-            if is_number(self.idx2word[i]):
-                continue
-            this_idxs.append(i)
-        idxs = np.array(this_idxs)
+        if clean:
+            this_idxs = []
+            for i in idxs:
+                if is_number(self.idx2word[i]):
+                    continue
+                this_idxs.append(i)
+            idxs = np.array(this_idxs)
         print("final feature number: %d " % (len(idxs)))
         freq = np.sum((self.data > 0), axis=0)
         if DEBUG:
