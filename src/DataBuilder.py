@@ -1,6 +1,7 @@
 import numpy as np
 import pickle
 from tqdm import tqdm
+from my_utils import is_number
 
 
 class DataBuilder:
@@ -18,6 +19,8 @@ class DataBuilder:
     def __init__(self, path):
         with open(path, "rb") as f:
             self.all_data = pickle.load(f)
+        for (i, item) in enumerate(self.all_data):
+            self.all_data[i] = list(item)
         self.passage_len = len(self.all_data)
 
     def build_vocab(self):
@@ -90,3 +93,25 @@ class DataBuilder:
         self.label_arr.append(self.labels[9 * length:])
         self.raw_data_arr.append(self.all_data[9 * length:])
         print("Done!")
+
+    def select_features(self, idxs, DEBUG, dbg_file):
+        this_idxs = []
+        for i in idxs:
+            if is_number(self.idx2word[i]):
+                continue
+            this_idxs.append(i)
+        idxs = np.array(this_idxs)
+        print("final feature number: %d " % (len(idxs)))
+        freq = np.sum((self.data > 0), axis=0)
+        if DEBUG:
+            print("final feature number: %d " % (len(idxs)), file=dbg_file)
+            print("selected words: ", file=dbg_file)
+            print(list(map(lambda ii: (self.idx2word[ii], freq[ii]), idxs)),
+                  file=dbg_file)
+        self.data = self.data[:, idxs]
+        for item in self.all_data:
+            words = []
+            for word in item[1]:
+                if self.word2idx[word] in idxs:
+                    words.append(word)
+            item[1] = words

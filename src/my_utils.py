@@ -2,6 +2,16 @@ import numpy as np
 import pickle
 import matplotlib.pyplot as plt
 import copy
+import re
+
+
+def is_number(num):
+    pattern = re.compile(r'^[-+]?[-0-9]\d*\.\d*|[-+]?\.?[0-9]\d*$')
+    result = pattern.match(num)
+    if result:
+        return True
+    else:
+        return False
 
 
 class utils:
@@ -82,11 +92,11 @@ class utils:
         label_class = np.unique(labels)
         label_map = {}
         label_num = len(label_class)
-        P = np.zeors(label_num)
+        P = np.zeros(label_num)
         for i in range(label_num):
             label_map[label_class[i]] = i
         for label in labels:
-            P[label_map[i]] += 1
+            P[label_map[label]] += 1
         P /= len(labels)
         labels_arr = np.array([labels])
         Q = []
@@ -95,9 +105,14 @@ class utils:
                          (np.repeat(labels_arr.T, word_num, axis=1) == label_class[i]), axis=0)
             Q.append(tmp)
         Q = np.array(Q)
-        Q /= np.repeat(np.sum(Q), label_num, axis=0)
-        P = np.repeat(np.reshape(P, [label_num, 1]), axis=0)
+        Q_sum = np.repeat(np.sum(Q, axis=0).reshape(
+            1, Q.shape[1]), label_num, axis=0)
+        Q = Q / (Q_sum + 1e-8)
+        P = np.repeat(np.reshape(P, [label_num, 1]), word_num, axis=1)
         ans = np.sum(Q * np.log((Q + 1e-8) / P), axis=0)
+        idxs = np.argpartition(ans, -K)[-K:]
+        print("feature num: %d" % (len(idxs)))
+        return idxs
 
     def naive_select(self, in_data, K=15000):
         """
@@ -107,8 +122,8 @@ class utils:
         idxs = np.argpartition(sum_res, -K)[-K:]
         idxs = np.sort(idxs)
         self.selected_idxs = idxs
-        print("feature num: %d" % (len(idxs)))
-        return in_data[:, idxs]
+        print("frequency feature number: %d" % (len(idxs)))
+        return idxs
 
     def chi_square(self, in_data, labels, K=15000):
         passage_num = len(in_data)

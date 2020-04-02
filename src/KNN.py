@@ -96,8 +96,6 @@ def get_res(train_data, train_labels, test_data, test_labels, raw_data=None, K=2
         false_idxs = np.where((pred_labels == test_labels) == False)[0]
         for idx in false_idxs:
             print("pred: %s    real: %s    text: %s" %
-                  (pred_labels[idx], test_labels[idx], raw_data[idx][1]))
-            print("pred: %s    real: %s    text: %s" %
                   (pred_labels[idx], test_labels[idx], raw_data[idx][1]), file=dbg_file)
     return acc_num, pred_labels
 
@@ -142,7 +140,7 @@ def run_test(idx, data_arr, label_arr, raw_data_arr, acc, all_pred_labels, selec
     train_data = np.array(train_data)
     test_labels = np.array(test_labels)
     train_labels = np.array(train_labels)
-    # selected_idxs = selector.chi_square(train_data, train_labels)
+    # selected_idxs = selector.select_by_KL(train_data, train_labels, 15000)
     # train_data = train_data[:, selected_idxs]
     # test_data = test_data[:, selected_idxs]
     # K = search_K(train_data, train_labels)
@@ -171,7 +169,8 @@ if __name__ == "__main__":
     select = utils(db.all_data, db.word2idx)
     db.data = select.get_Tf_idf()
     # db.data = select.select_by_Tf_idf(db.data)
-    db.data = select.naive_select(db.data, 15000)
+    idxs = select.naive_select(db.data, 15000)
+    db.select_features(idxs, DEBUG=DEBUG, dbg_file=dbg_file)
     db.normalize_data()
     db.divide_data()
     acc = []
