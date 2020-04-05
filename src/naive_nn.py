@@ -49,7 +49,7 @@ def build_datas(data):
     return new_data, word2idx, idx2word, vocab_len
 
 
-with open("./data/all_data.pkl", "rb") as f:
+with open("../data/all_data.pkl", "rb") as f:
     all_data = pickle.load(f)
 
 labels, label2idx, idx2label = build_labels(all_data)
