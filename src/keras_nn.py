@@ -75,9 +75,9 @@ test_x = keras.preprocessing.sequence.pad_sequences(
 )
 
 model = keras.Sequential([
-    layers.Embedding(vocab_len + 2, 16),
+    layers.Embedding(vocab_len + 2, 100),
     layers.GlobalAveragePooling1D(),
-    layers.Dense(16, activation='relu'),
+    layers.Dense(64, activation='relu'),
     layers.Dense(9, activation='softmax')
 ])
 model.summary()
