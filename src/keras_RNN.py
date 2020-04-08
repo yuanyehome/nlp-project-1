@@ -78,8 +78,8 @@ model.add(layers.Embedding(vocab_len + 2, 32, input_length=100))
 model.add(layers.LSTM(128, dropout=0.2, recurrent_dropout=0.1))
 model.add(layers.Dense(9, activation='softmax'))
 model.summary()
-model.compile(optimizer='adam',
-              loss='categorical_crossentropy',
+model.compile(loss=tf.keras.losses.CategoricalCrossentropy(),
+              optimizer=tf.keras.optimizers.Adam(1e-4),
               metrics=['accuracy'])
 
 x_train = train_x[:8000]

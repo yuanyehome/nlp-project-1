@@ -2,8 +2,12 @@ import tensorflow as tf
 from sklearn.model_selection import train_test_split
 from tensorflow.keras.preprocessing.text import Tokenizer
 from tensorflow.keras.preprocessing.sequence import pad_sequences
+from tqdm import tqdm
 import pickle
 import numpy as np
+
+tf.config.threading.set_intra_op_parallelism_threads(1)
+tf.config.threading.set_inter_op_parallelism_threads(1)
 
 hps = {
     'lr': 1e-3,
@@ -62,7 +66,6 @@ class dataGen:
             res.append([self.x_data[idx:idx+hps['batch_size']],
                         self.y_data[idx:idx+hps['batch_size']]])
             idx += hps['batch_size']
-        res.append([self.x_data[idx:], self.y_data[idx:]])
         return res
 
 
@@ -78,7 +81,8 @@ if __name__ == "__main__":
     tokenizer.fit_on_texts(corpus)
     vocab = tokenizer.word_index
     assert (0 not in vocab.values())
-    x_train, x_test, y_train, y_test = train_test_split(corpus, labels, test_size=0.1)
+    x_train, x_test, y_train, y_test = train_test_split(
+        corpus, labels, test_size=0.1)
     x_train = tokenizer.texts_to_sequences(x_train)
     x_test = tokenizer.texts_to_sequences(x_test)
     x_train = pad_sequences(x_train, maxlen=hps['pad_size'])
@@ -108,7 +112,8 @@ if __name__ == "__main__":
 
     W = tf.Variable(tf.truncated_normal([hps['hidden_size'], hps['class_num']], stddev=0.1),
                     dtype=tf.float32)
-    bias = tf.Variable(tf.constant(0.1, shape=[hps['class_num']]), dtype=tf.float32)
+    bias = tf.Variable(tf.constant(
+        0.1, shape=[hps['class_num']]), dtype=tf.float32)
     y_pred = tf.nn.softmax(tf.matmul(h_state, W) + bias)
 
     loss = -tf.reduce_mean(Y_input * tf.log(y_pred))
@@ -123,20 +128,28 @@ if __name__ == "__main__":
             batches = train_gen.gen_batch()
             costs = []
             accs = []
-            for (X_batch, Y_batch) in batches:
+            for (X_batch, Y_batch) in tqdm(batches):
                 cost, acc, _ = sess.run([loss, accuracy, train_op],
                                         feed_dict={
                                             X_input: X_batch,
                                             Y_input: Y_batch,
                                             keep_prob: 0.5
-                                        })
+                })
                 costs.append(cost)
                 accs.append(acc)
-            test_cost, test_acc, _ = sess.run([loss, accuracy, train_op],
-                                              feed_dict={
-                                                  X_input: x_test,
-                                                  Y_input: y_test,
-                                                  keep_prob: 1.0
-                                              })
+            test_batches = test_gen.gen_batch()
+            test_costs = []
+            test_accs = []
+            for (X_batch, Y_batch) in tqdm(test_batches):
+                test_cost, test_acc = sess.run(
+                    [loss, accuracy],
+                    feed_dict={
+                        X_input: X_batch,
+                        Y_input: Y_batch,
+                        keep_prob: 1.0
+                    })
+                test_costs.append(test_cost)
+                test_accs.append(test_acc)
             print("epoch %d info: cost = %.4f, acc = %.4f, test_cost = %.4f, test_acc = %.4f"
-                  % (epoch, float(np.mean(costs)), float(np.mean(accs)), test_cost, test_acc))
+                  % (epoch, np.mean(costs), np.mean(accs),
+                     np.mean(test_costs), np.mean(test_acc)))
