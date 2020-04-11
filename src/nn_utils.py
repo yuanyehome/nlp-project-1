@@ -38,6 +38,24 @@ def build_idx_data(data, maxlen=200, max_vocab=15000, padding='post'):
     return corpus, word2idx, idx2word
 
 
+def gen_split(zip_data, case):
+    assert (case < 10)
+    length = len(zip_data)
+    split_len = length // 10
+    train_data_1 = zip_data[0:case * split_len]
+    if case == 9:
+        test_data = zip_data[split_len * case:]
+        train_data = train_data_1
+        return train_data, test_data
+    else:
+        test_data = zip_data[case * split_len:(case + 1) * split_len]
+        train_data_2 = zip_data[(case + 1) * split_len:]
+    if case == 0:
+        return train_data_2, test_data
+    else:
+        return np.concatenate((train_data_1, train_data_2)), test_data
+
+
 if __name__ == "__main__":
     with open("./data/all_data.pkl", "rb") as f:
         all_data = pickle.load(f)

@@ -8,7 +8,7 @@ import numpy as np
 import pickle
 from hyperParameters import params
 from dataGen import my_dataloader, my_dataset
-from nn_utils import build_idx_data, build_labels
+from nn_utils import build_idx_data, build_labels, gen_split
 import time
 
 
@@ -49,24 +49,22 @@ def run_test(model, test_data):
     return test_correct / test_all
 
 
-def run_train(model, train_data, epoch_num=100):
+def run_train(model, train_data, test_data, epoch_num=60):
     dataloader = my_dataloader(train_data)
     criterion = nn.CrossEntropyLoss()
     lr = 0.001
-    for epoch in range(100):
+    for epoch in range(epoch_num):
         train_correct = 0
         train_all = 0
         losses = []
         if epoch >= 30:
             lr = 0.0005
-        if epoch >= 60:
-            lr = 0.0001
-        optimizer = optim.Adam(net.parameters(), lr=0.001)
+        optimizer = optim.Adam(model.parameters(), lr=0.001)
         for i, (labels, sentences) in enumerate(dataloader):
             optimizer.zero_grad()
             sentences = sentences.type(torch.LongTensor)
             labels = labels.type(torch.LongTensor)
-            outputs = net(sentences)
+            outputs = model(sentences)
             _, predicted = torch.max(outputs, 1)
             train_all += len(labels)
             train_correct += torch.sum(predicted == labels).item()
@@ -74,9 +72,12 @@ def run_train(model, train_data, epoch_num=100):
             losses.append(loss)
             loss.backward()
             optimizer.step()
-            if (i + 1) % 10 == 0:
+            if (i + 1) % 60 == 0:
                 print("epoch: %d step: %d loss: %f" % (epoch, i, loss))
-        test_acc = run_test(net, test_data)
+        test_acc = run_test(model, test_data)
+        print("epoch: %d train_acc: %.2f%% test_acc: %.2f%% avg_loss: %.4f" %
+              (epoch, train_correct / train_all *
+               100, test_acc * 100, torch.mean(loss)))
         print("epoch: %d train_acc: %.2f%% test_acc: %.2f%% avg_loss: %.4f" %
               (epoch, train_correct / train_all *
                100, test_acc * 100, torch.mean(loss)),
@@ -93,11 +94,20 @@ if __name__ == "__main__":
     )
     zip_data = list(zip(all_labels, corpus))
     np.random.shuffle(zip_data)
-    print("data length: %d" % len(zip_data))
-    train_data = zip_data[0:-len(zip_data) // 10]
-    test_data = zip_data[-len(zip_data) // 10:]
-    print("split done!")
+    print("All data length: %d" % len(zip_data))
+    print(Net())
 
-    net = Net()
-    print(net)
-    run_train(net, train_data)
+    test_accs = []
+    for case in range(10):
+        train_data, test_data = gen_split(zip_data, case)
+        print("\033[32mTest case %d\033[0m: train_len = %d, test_len = %d" %
+              (case, len(train_data), len(test_data)))
+        model = Net()
+        run_train(model, train_data, test_data)
+        test_acc = run_test(model, test_data)
+        test_accs.append(test_acc)
+        print("\033[32mTest case %d\033[0m: acc = %.2f%%" %
+              (case, test_acc * 100))
+        print("Test case %d: acc = %.2f%%" %
+              (case, test_acc * 100), file=log_file)
+    print("Avg acc = %f", np.mean(test_accs))
