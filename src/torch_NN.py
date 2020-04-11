@@ -9,9 +9,12 @@ import pickle
 from hyperParameters import params
 from dataGen import my_dataloader, my_dataset
 from nn_utils import build_idx_data, build_labels
+import time
 
 
 class_num = 9
+log_file = open("./log/log_%s.txt" %
+                (time.strftime("%Y-%m-%d-%H:%M:%S", time.localtime())), "w")
 
 
 class Net(nn.Module):
@@ -46,23 +49,7 @@ def run_test(model, test_data):
     return test_correct / test_all
 
 
-if __name__ == "__main__":
-    with open("./data/all_data.pkl", "rb") as f:
-        all_data = pickle.load(f)
-    all_labels, label2idx, idx2label = build_labels(all_data)
-    corpus, word2idx, idx2word = build_idx_data(
-        all_data, max_vocab=params['vocab_size'],
-        maxlen=params['pad_len'], padding=params['pad_type']
-    )
-    zip_data = list(zip(all_labels, corpus))
-    np.random.shuffle(zip_data)
-    print("data length: %d" % len(zip_data))
-    train_data = zip_data[0:-len(zip_data) // 10]
-    test_data = zip_data[-len(zip_data) // 10:]
-    print("split done!")
-
-    net = Net()
-    print(net)
+def run_train(model, train_data, epoch_num=100):
     dataloader = my_dataloader(train_data)
     criterion = nn.CrossEntropyLoss()
     lr = 0.001
@@ -91,4 +78,26 @@ if __name__ == "__main__":
                 print("epoch: %d step: %d loss: %f" % (epoch, i, loss))
         test_acc = run_test(net, test_data)
         print("epoch: %d train_acc: %.2f%% test_acc: %.2f%% avg_loss: %.4f" %
-              (epoch, train_correct / train_all * 100, test_acc * 100, torch.mean(loss)))
+              (epoch, train_correct / train_all *
+               100, test_acc * 100, torch.mean(loss)),
+              file=log_file)
+
+
+if __name__ == "__main__":
+    with open("./data/all_data.pkl", "rb") as f:
+        all_data = pickle.load(f)
+    all_labels, label2idx, idx2label = build_labels(all_data)
+    corpus, word2idx, idx2word = build_idx_data(
+        all_data, max_vocab=params['vocab_size'],
+        maxlen=params['pad_len'], padding=params['pad_type']
+    )
+    zip_data = list(zip(all_labels, corpus))
+    np.random.shuffle(zip_data)
+    print("data length: %d" % len(zip_data))
+    train_data = zip_data[0:-len(zip_data) // 10]
+    test_data = zip_data[-len(zip_data) // 10:]
+    print("split done!")
+
+    net = Net()
+    print(net)
+    run_train(net, train_data)
