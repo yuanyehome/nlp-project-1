@@ -48,7 +48,8 @@ def run_test(model, test_data):
     with torch.no_grad():
         for test_data in test_loader:
             labels, sentences = test_data
-            sentences = sentences.type(torch.LongTensor)
+            sentences = sentences.type(torch.LongTensor).cuda()
+            labels = labels.type(torch.LongTensor).cuda()
             outputs = model(sentences)
             _, predicted = torch.max(outputs, 1)
             test_all += len(labels)
@@ -74,8 +75,8 @@ def run_train(model, train_data, test_data, epoch_num=60):
         optimizer = optim.Adam(model.parameters(), lr=lr)
         for i, (labels, sentences) in enumerate(dataloader):
             optimizer.zero_grad()
-            sentences = sentences.type(torch.LongTensor)
-            labels = labels.type(torch.LongTensor)
+            sentences = sentences.type(torch.LongTensor).cuda()
+            labels = labels.type(torch.LongTensor).cuda()
             outputs = model(sentences)
             _, predicted = torch.max(outputs, 1)
             train_all += len(labels)
@@ -135,11 +136,11 @@ if __name__ == "__main__":
         print("\033[32mTest case %d\033[0m: train_len = %d, test_len = %d" %
               (case, len(train_data), len(test_data)))
         if argv[1] == 'naive':
-            model = Net(cfg)
+            model = Net(cfg).cuda()
         elif argv[1] == 'DNN':
-            model = LSTM()
+            model = LSTM().cuda()
         else:
-            model = DNN()
+            model = DNN().cuda()
         train_log = run_train(
             model, train_data, test_data, epoch_num=run_epoch)
         train_logs.append(train_log)
