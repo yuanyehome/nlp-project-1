@@ -78,10 +78,10 @@ def run_train(model, train_data, test_data, epoch_num=60):
         print("epoch: %d train_acc: %.2f%% test_acc: %.2f%% avg_loss: %.4f" %
               (epoch, train_correct / train_all *
                100, test_acc * 100, torch.mean(loss)))
-        print("epoch: %d train_acc: %.2f%% test_acc: %.2f%% avg_loss: %.4f" %
-              (epoch, train_correct / train_all *
-               100, test_acc * 100, torch.mean(loss)),
-              file=log_file)
+        # print("epoch: %d train_acc: %.2f%% test_acc: %.2f%% avg_loss: %.4f" %
+        #       (epoch, train_correct / train_all *
+        #        100, test_acc * 100, torch.mean(loss)),
+        #       file=log_file)
 
 
 if __name__ == "__main__":
@@ -110,5 +110,5 @@ if __name__ == "__main__":
               (case, test_acc * 100))
         print("Test case %d: acc = %.2f%%" %
               (case, test_acc * 100), file=log_file)
-    print("Avg acc = %f", np.mean(test_accs))
-    print("Avg acc = %f", np.mean(test_accs), file=log_file)
+    print("Avg acc = %f" % np.mean(test_accs))
+    print("Avg acc = %f" % np.mean(test_accs), file=log_file)
