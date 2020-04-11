@@ -47,9 +47,6 @@ def lstm_cell(cell_type, num_nodes, keep_prob):
 
 
 class dataGen:
-    x_data = None
-    y_data = None
-
     def __init__(self, x_data, y_data):
         self.x_data = x_data
         self.y_data = y_data
