@@ -1,4 +1,0 @@
-epoch: 0 train_acc: 23.53% test_acc: 27.83% avg_loss: 1.9315
-epoch: 1 train_acc: 24.69% test_acc: 26.28% avg_loss: 1.9577
-epoch: 2 train_acc: 29.16% test_acc: 26.73% avg_loss: 1.9573
-epoch: 3 train_acc: 34.59% test_acc: 46.04% avg_loss: 1.8491
