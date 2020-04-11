@@ -111,3 +111,4 @@ if __name__ == "__main__":
         print("Test case %d: acc = %.2f%%" %
               (case, test_acc * 100), file=log_file)
     print("Avg acc = %f", np.mean(test_accs))
+    print("Avg acc = %f", np.mean(test_accs), file=log_file)
