@@ -10,26 +10,33 @@ from hyperParameters import params
 from dataGen import my_dataloader, my_dataset
 from nn_utils import build_idx_data, build_labels, gen_split
 import time
+import sys
+from networks import DNN, LSTM
 
 
 class_num = 9
 log_file = open("./log/log_%s.txt" %
                 (time.strftime("%Y-%m-%d-%H:%M:%S", time.localtime())), "w")
+pkl_log_file = open("./log/log_%s.pkl" %
+                    (time.strftime("%Y-%m-%d-%H:%M:%S", time.localtime())), "wb")
 
 
 class Net(nn.Module):
-    def __init__(self):
+    def __init__(self, cfg):
         super(Net, self).__init__()
         self.embed = nn.Embedding(params['vocab_size'], params['embed_dim'])
         embed_dim = params['embed_dim']
         dropout = params['dropout']
         self.fc = nn.Linear(embed_dim, class_num)
         self.dropout = nn.Dropout(dropout)
+        self.cfg = cfg
 
     def forward(self, x):
         x = self.embed(x)
         x = F.adaptive_avg_pool2d(x.unsqueeze(
             1), (1, params['embed_dim'])).squeeze()
+        if self.cfg == 'dropout':
+            x = self.dropout(x)
         ret = self.fc(x)
         return ret
 
@@ -53,13 +60,18 @@ def run_train(model, train_data, test_data, epoch_num=60):
     dataloader = my_dataloader(train_data)
     criterion = nn.CrossEntropyLoss()
     lr = 0.001
+    train_accs = []
+    test_accs = []
+    epoch_loss = []
     for epoch in range(epoch_num):
         train_correct = 0
         train_all = 0
         losses = []
-        if epoch >= 30:
+        if epoch >= 32:
             lr = 0.0005
-        optimizer = optim.Adam(model.parameters(), lr=0.001)
+        if epoch >= 64:
+            lr = 0.0001
+        optimizer = optim.Adam(model.parameters(), lr=lr)
         for i, (labels, sentences) in enumerate(dataloader):
             optimizer.zero_grad()
             sentences = sentences.type(torch.LongTensor)
@@ -78,13 +90,30 @@ def run_train(model, train_data, test_data, epoch_num=60):
         print("epoch: %d train_acc: %.2f%% test_acc: %.2f%% avg_loss: %.4f" %
               (epoch, train_correct / train_all *
                100, test_acc * 100, torch.mean(loss)))
+        train_accs.append(train_correct / train_all)
+        test_accs.append(test_acc)
+        epoch_loss.append(torch.mean(loss).item())
         # print("epoch: %d train_acc: %.2f%% test_acc: %.2f%% avg_loss: %.4f" %
         #       (epoch, train_correct / train_all *
         #        100, test_acc * 100, torch.mean(loss)),
         #       file=log_file)
+    return [train_accs, test_accs, epoch_loss]
 
 
 if __name__ == "__main__":
+    argv = sys.argv
+    cfg = None
+    run_epoch = 60
+    if len(argv) <= 1:
+        print("Usage: python src/torch_NN.py [naive/DNN/LSTM] [dropout/None]")
+        exit(0)
+    if len(argv) >= 3:
+        if argv[2] != 'dropout':
+            raise ValueError
+        cfg = argv[2]
+        run_epoch = 100
+    assert (argv[1] in ['naive', 'DNN', 'LSTM'])
+    print(argv, file=log_file)
     with open("./data/all_data.pkl", "rb") as f:
         all_data = pickle.load(f)
     all_labels, label2idx, idx2label = build_labels(all_data)
@@ -95,20 +124,31 @@ if __name__ == "__main__":
     zip_data = list(zip(all_labels, corpus))
     np.random.shuffle(zip_data)
     print("All data length: %d" % len(zip_data))
-    print(Net())
+    print(Net(cfg))
+    print(DNN())
+    print(LSTM())
 
     test_accs = []
+    train_logs = []
     for case in range(10):
         train_data, test_data = gen_split(zip_data, case)
         print("\033[32mTest case %d\033[0m: train_len = %d, test_len = %d" %
               (case, len(train_data), len(test_data)))
-        model = Net()
-        run_train(model, train_data, test_data)
+        if argv[1] == 'naive':
+            model = Net(cfg)
+        elif argv[1] == 'DNN':
+            model = LSTM()
+        else:
+            model = DNN()
+        train_log = run_train(
+            model, train_data, test_data, epoch_num=run_epoch)
+        train_logs.append(train_log)
         test_acc = run_test(model, test_data)
         test_accs.append(test_acc)
         print("\033[32mTest case %d\033[0m: acc = %.2f%%" %
               (case, test_acc * 100))
         print("Test case %d: acc = %.2f%%" %
               (case, test_acc * 100), file=log_file)
+    pickle.dump(train_logs, pkl_log_file)
     print("Avg acc = %f" % np.mean(test_accs))
     print("Avg acc = %f" % np.mean(test_accs), file=log_file)
