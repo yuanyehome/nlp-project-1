@@ -138,9 +138,9 @@ if __name__ == "__main__":
         if argv[1] == 'naive':
             model = Net(cfg).cuda()
         elif argv[1] == 'DNN':
-            model = LSTM().cuda()
-        else:
             model = DNN().cuda()
+        else:
+            model = LSTM().cuda()
         train_log = run_train(
             model, train_data, test_data, epoch_num=run_epoch)
         train_logs.append(train_log)
