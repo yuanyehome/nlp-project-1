@@ -8,11 +8,16 @@ import numpy as np
 import pickle
 from hyperParameters import params
 import time
+from nn_utils import get_parameters
 
 class_num = 9
 
 
 class DNN(nn.Module):
+    """
+    A deeper feedforward neural network with an embedding layer and three fc layers.
+    """
+
     def __init__(self):
         super(DNN, self).__init__()
         self.embed = nn.Embedding(params['vocab_size'], params['embed_dim'])
@@ -33,10 +38,14 @@ class DNN(nn.Module):
 
 
 class LSTM(nn.Module):
+    """
+    A simple LSTM with an embedding layer and a LSTM layer and two fc layers.
+    """
+
     def __init__(self):
         super(LSTM, self).__init__()
         self.embed = nn.Embedding(params['vocab_size'], params['embed_dim'])
-        embed_dim = params['embed_dim']
+        self.embed_dim = params['embed_dim']
         self.hidden_dim = 50
         self.lstm = nn.LSTM(params['embed_dim'], 50)
         self.fc1 = nn.Linear(50, 16)
@@ -45,8 +54,17 @@ class LSTM(nn.Module):
     def forward(self, x):
         x = self.embed(x)
         lstm_out, self.hidden = self.lstm(
-            x.view(params['pad_len'], params['batch_size'], -1))
-        res = F.relu(self.fc1(lstm_out.view(
-            params['batch_size'], params['pad_len'], -1)))
+            x.view(params['pad_len'], -1, self.embed_dim))
+        lstm_out = lstm_out.view(-1, params['pad_len'], self.hidden_dim)
+        out = F.adaptive_avg_pool2d(lstm_out.unsqueeze(
+            1), (1, self.hidden_dim)).squeeze()
+        res = F.relu(self.fc1(out))
         res = self.fc2(res)
         return res
+
+
+if __name__ == "__main__":
+    dnn = DNN()
+    lstm = LSTM()
+    get_parameters(dnn)
+    get_parameters(lstm)

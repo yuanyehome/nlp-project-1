@@ -6,6 +6,10 @@ import pickle
 
 
 class my_dataset(Dataset):
+    """
+    Build pytorch dataset
+    """
+
     def __init__(self, train_data):
         """
         train data type: (class, ndarray([idx1, idx2, ...]))
@@ -25,6 +29,9 @@ class my_dataset(Dataset):
 
 
 def my_dataloader(train_data):
+    """
+    Build pytorch dataloader
+    """
     dataset = my_dataset(train_data)
     return DataLoader(dataset, batch_size=params['batch_size'], shuffle=True)
 

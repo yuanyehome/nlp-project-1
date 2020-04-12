@@ -7,6 +7,9 @@ from hyperParameters import params
 
 
 def build_labels(data):
+    """
+    Build label idx.
+    """
     labels = np.zeros(len(data))
     label2idx = {}
     idx2label = {}
@@ -22,6 +25,13 @@ def build_labels(data):
 
 
 def build_idx_data(data, maxlen=200, max_vocab=15000, padding='post'):
+    """
+    Change each word into a idx. For example, a sentence can be presented as 
+    [idx1, idx2, ...] which means the first word of this sentence is the idx1-th word
+    (or if change to one-hot, the idx1-th dim of one-hot is 1)
+
+    And pad each sentence to a fixed length.
+    """
     assert (padding in ['pre', 'post'])
     corpus = []
     for item in data:
@@ -39,6 +49,9 @@ def build_idx_data(data, maxlen=200, max_vocab=15000, padding='post'):
 
 
 def gen_split(zip_data, case):
+    """
+    Split data into 10 parts.
+    """
     assert (case < 10)
     length = len(zip_data)
     split_len = length // 10
@@ -54,6 +67,13 @@ def gen_split(zip_data, case):
         return train_data_2, test_data
     else:
         return np.concatenate((train_data_1, train_data_2)), test_data
+
+
+def get_parameters(net):
+    print(net)
+    total_num = sum(p.numel() for p in net.parameters())
+    trainable_num = sum(p.numel() for p in net.parameters() if p.requires_grad)
+    print({'Total': total_num, 'Trainable': trainable_num})
 
 
 if __name__ == "__main__":

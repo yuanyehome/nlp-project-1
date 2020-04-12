@@ -8,12 +8,12 @@ import numpy as np
 import pickle
 from hyperParameters import params
 from dataGen import my_dataloader, my_dataset
-from nn_utils import build_idx_data, build_labels, gen_split
+from nn_utils import build_idx_data, build_labels, gen_split, get_parameters
 import time
 import sys
 from networks import DNN, LSTM
 
-
+# open some log files
 class_num = 9
 log_file = open("./log/log_%s.txt" %
                 (time.strftime("%Y-%m-%d-%H:%M:%S", time.localtime())), "w")
@@ -22,6 +22,12 @@ pkl_log_file = open("./log/log_%s.pkl" %
 
 
 class Net(nn.Module):
+    """
+    A simple feedforward neural network.
+    Use nn.Embedding as a embedding layer.
+    No pre-trained word vector.
+    """
+
     def __init__(self, cfg):
         super(Net, self).__init__()
         self.embed = nn.Embedding(params['vocab_size'], params['embed_dim'])
@@ -42,6 +48,9 @@ class Net(nn.Module):
 
 
 def run_test(model, test_data):
+    """
+    Generate a test dataloader and run a test.
+    """
     test_loader = my_dataloader(test_data)
     test_correct = 0
     test_all = 0
@@ -58,6 +67,9 @@ def run_test(model, test_data):
 
 
 def run_train(model, train_data, test_data, epoch_num=60):
+    """
+    Generate train dataloader and run train.
+    """
     dataloader = my_dataloader(train_data)
     criterion = nn.CrossEntropyLoss()
     lr = 0.001
@@ -68,6 +80,7 @@ def run_train(model, train_data, test_data, epoch_num=60):
         train_correct = 0
         train_all = 0
         losses = []
+        # make learning rate decreate with epoch, may be helpful for convergence.
         if epoch >= 32:
             lr = 0.0005
         if epoch >= 64:
@@ -85,8 +98,10 @@ def run_train(model, train_data, test_data, epoch_num=60):
             losses.append(loss)
             loss.backward()
             optimizer.step()
+            # every 60 steps print a message.
             if (i + 1) % 60 == 0:
                 print("epoch: %d step: %d loss: %f" % (epoch, i, loss))
+        # run a test when each epoch ends.
         test_acc = run_test(model, test_data)
         print("epoch: %d train_acc: %.2f%% test_acc: %.2f%% avg_loss: %.4f" %
               (epoch, train_correct / train_all *
@@ -102,6 +117,7 @@ def run_train(model, train_data, test_data, epoch_num=60):
 
 
 if __name__ == "__main__":
+    # process command line args
     argv = sys.argv
     cfg = None
     run_epoch = 60
@@ -115,6 +131,8 @@ if __name__ == "__main__":
         run_epoch = 100
     assert (argv[1] in ['naive', 'DNN', 'LSTM'])
     print(argv, file=log_file)
+
+    # prepare data and transform them to useful format
     with open("./data/all_data.pkl", "rb") as f:
         all_data = pickle.load(f)
     all_labels, label2idx, idx2label = build_labels(all_data)
@@ -125,9 +143,9 @@ if __name__ == "__main__":
     zip_data = list(zip(all_labels, corpus))
     np.random.shuffle(zip_data)
     print("All data length: %d" % len(zip_data))
-    print(Net(cfg))
-    print(DNN())
-    print(LSTM())
+    get_parameters(Net(cfg))
+    get_parameters(DNN())
+    get_parameters(LSTM())
 
     test_accs = []
     train_logs = []
@@ -150,6 +168,7 @@ if __name__ == "__main__":
               (case, test_acc * 100))
         print("Test case %d: acc = %.2f%%" %
               (case, test_acc * 100), file=log_file)
+    # save the log, for plot.
     pickle.dump(train_logs, pkl_log_file)
     print("Avg acc = %f" % np.mean(test_accs))
     print("Avg acc = %f" % np.mean(test_accs), file=log_file)
